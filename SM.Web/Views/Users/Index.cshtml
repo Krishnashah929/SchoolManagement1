@@ -1,0 +1,327 @@
+﻿@{
+    Layout = "_LayoutUsers";
+}
+@{
+    ViewData["Title"] = "Index";
+}
+@model SM.Entity.User
+ 
+    <link href="~/datatables/css/jquery.dataTables.css" rel="stylesheet" />
+
+    <div class="text-center pt-5 mb-5">
+        <h1> Index Page </h1>
+    </div>
+
+    <!-- Main content -->
+    <section class="content">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">  Welcome, List of users</h3>
+                        </div>
+                        <!-- /.card-header -->
+                        <div class="card-body">
+                            <table id="studentTable" class=" table">
+                                <thead>
+                                    <tr>
+                                        @*<th>UserId</th>
+                                            <th>First Name</th>
+                                            <th>Last Name</th>
+                                            <th>Email</th>
+                                            <th>Edit</th>
+                                            <th>Delete</th>*@
+                                        <th>
+                                            @Html.DisplayNameFor(model => model.UserId)
+                                        </th>
+                                        <th>
+                                            @Html.DisplayNameFor(model => model.FirstName)
+                                        </th>
+                                        <th>
+                                            @Html.DisplayNameFor(model => model.Lastname)
+                                        </th>
+                                        <th>
+                                            @Html.DisplayNameFor(model => model.EmailAddress)
+                                        </th>
+                                        <th>Actions </th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="Model1"></section>
+    <section id="Model2"></section>
+
+
+    <script src="~/datatables/js/jquery.dataTables.js"></script>
+
+    <script type="text/javascript">
+
+        $.fn.dataTable.pipeline = function (opts) {
+            debugger;
+            // Configuration options
+            var conf = $.extend({
+                pages: 5,     // number of pages to cache. That means action(url) will be called in 1st, 6th, 11th ... pages
+                url: 'Users/GetFilteredItems',  // url to controller action
+                data: null,   // function or object with parameters to send to the server
+                method: 'GET' // Ajax HTTP method
+            }, opts);
+            // Private variables for storing the cache
+            var cacheLower = -1;
+            var cacheUpper = null;
+            var cacheLastRequest = null;
+            var cacheLastJson = null;
+            return function (request, drawCallback, settings) {
+                var ajax = false;
+                var requestStart = request.start;
+                var drawStart = request.start;
+                var requestLength = request.length;
+                var requestEnd = requestStart + requestLength;
+                if (settings.clearCache) {
+                    // API requested that the cache be cleared
+                    ajax = true;
+                    settings.clearCache = false;
+                }
+                else if (cacheLower < 0 || requestStart < cacheLower || requestEnd > cacheUpper) {
+                    // outside cached data - need to make a request
+                    ajax = true;
+                }
+                else if (JSON.stringify(request.order) !== JSON.stringify(cacheLastRequest.order) ||
+                    JSON.stringify(request.columns) !== JSON.stringify(cacheLastRequest.columns) ||
+                    JSON.stringify(request.search) !== JSON.stringify(cacheLastRequest.search)
+                ) {
+                    // properties changed (ordering, columns, searching)
+                    ajax = true;
+                }
+                // Store the request for checking next time around
+                cacheLastRequest = $.extend(true, {}, request);
+                if (ajax) {
+                    // Need data from the server
+                    if (requestStart < cacheLower) {
+                        requestStart = requestStart - (requestLength * (conf.pages - 1));
+                        if (requestStart < 0) {
+                            requestStart = 0;
+                        }
+                    }
+                    cacheLower = requestStart;
+                    cacheUpper = requestStart + (requestLength * conf.pages);
+                    request.start = requestStart;
+                    request.length = requestLength * conf.pages;
+                    // Provide the same `data` options as DataTables.
+                    if (typeof conf.data === 'function') {
+                        // As a function it is executed with the data object as an arg
+                        // for manipulation. If an object is returned, it is used as the
+                        // data object to submit
+                        var d = conf.data(request);
+                        if (d) {
+                            $.extend(request, d);
+                        }
+                    }
+                    else if ($.isPlainObject(conf.data)) {
+                        // As an object, the data given extends the default
+                        $.extend(request, conf.data);
+                    }
+                    settings.jqXHR = $.ajax({
+                        "type": conf.method,
+                        "url": conf.url,
+                        "data": request,
+                        "dataType": "json",
+                        "cache": false,
+                        "success": function (json) {
+                            cacheLastJson = $.extend(true, {}, json);
+                            if (cacheLower != drawStart) {
+                                json.data.splice(0, drawStart - cacheLower);
+                            }
+                            if (requestLength >= -1) {
+                                json.data.splice(requestLength, json.data.length);
+                            }
+                            drawCallback(json);
+                        }
+                    });
+                }
+                else {
+                    json = $.extend(true, {}, cacheLastJson);
+                    json.draw = request.draw; // Update the echo for each response
+                    json.data.splice(0, requestStart - cacheLower);
+                    json.data.splice(requestLength, json.data.length);
+                    drawCallback(json);
+                }
+            }
+        };
+        // Register an API method that will empty the pipelined data, forcing an Ajax
+        // fetch on the next draw (i.e. `table.clearPipeline().draw()`)
+        $.fn.dataTable.Api.register('clearPipeline()', function () {
+            return this.iterator('table', function (settings) {
+                settings.clearCache = true;
+            });
+        });
+        //
+        // DataTables initialisation
+        // Updated according to our data
+        $(document).ready(function () {
+            debugger;
+            $('#studentTable').DataTable({
+                "processing": true,
+                "serverSide": true,
+                "searching": true,
+                "paging": true,
+                "ajax": $.fn.dataTable.pipeline({
+                    url: '@Url.Action("GetFilteredItems", "Users")',
+                    //url: 'Users/GetFilteredItems',
+                    pages: 5 //number of pages to cache
+                }),
+                "columns": [
+                    // For userId
+                    { "data": "userId", "name": "Id" },
+                    // For FirstName
+                    { "data": "firstName", "name": "Firstname" },
+                    // For Lastname
+                    { "data": "lastname", "name": "Lastname" },
+                    {
+
+                        "render": function (data) {
+                            var date = new Date(data);
+                            return date.toLocaleString();
+                        }
+                    },
+                    {
+                        'data': null,
+                        'render': function (data, type, row) {
+                            return '<button id="' + row.userId + '" onclick="fnGetUpdateDetailModal(this)">Edit</button>'
+                                + '<button id="' + row.userId + '" onclick="fnGetDeletDetailModal(this)">Delete</button>'
+                        }
+                    }
+                ],
+                language: {
+                    processing: '<div class="spinner"></div>',
+                    zeroRecords: "No matching records found"
+                }
+            });
+        });
+
+        //For open popups
+        //Edit Model
+        function fnGetUpdateDetailModal(ud) {
+            var id = ud.getAttribute("data-id");
+            $.ajax({
+                url: '/Users/UpdateUserDetailsGet',
+                type: 'GET',
+                data: { "id": id },
+                success: function (response) {
+                    $('#Model1').html(response);
+                    $('#UpdateDetailsModel').modal("show");
+                }
+            });
+        }
+        function fnPostUpdateDetail() {
+            var data = {};
+            data.userId = document.getElementById("id").value;
+            data.firstName = document.getElementById("idFirstName").value;
+            data.lastname = document.getElementById("idLastName").value;
+            data.emailAddress = document.getElementById("idEmail").value;
+            $.ajax({
+                url: '/Users/UpdateUserDetailsPost',
+                type: 'POST',
+                data: data,
+                success: function (result) {
+                    if (result.value == "true") {
+                        alert("Your details are updated.");
+                    }
+                    else {
+                        alert("error");
+                    }
+                }
+            });
+        }
+        //Delete Model
+        function fnGetDeletDetailModal(ud) {
+            var id = ud.getAttribute("data-id");
+            $.ajax({
+                url: '/Users/DeleteUserDetailsGet',
+                type: 'GET',
+                data: { "id": id },
+                success: function (response) {
+                    $('#Model2').html(response);
+                    $('#DeleteDetailsModel').modal("show");
+                }
+            });
+        }
+        function fnPostDeleteDetail() {
+            var data = {};
+            data.userId = document.getElementById("id").value;
+            $.ajax({
+                url: '/Users/DeleteUserDetailsPost',
+                type: 'POST',
+                data: data,
+                success: function (result) {
+                    if (result.value == "true") {
+                        alert("Your details are deleted.");
+                    }
+                    else {
+                        alert("Invalid");
+                    }
+                }
+            });
+        }
+
+    </script>
+
+    @*<script>
+            $(document).ready(function () {
+                $('#studentTable').DataTable();
+            });
+        </script>*@
+
+
+
+
+    @*<script type="text/javascript">
+            $(document).ready(function () {
+                $(function () {
+                    $("#idIndexTable").DataTable({
+                        "responsive": true, "lengthChange": false, "autoWidth": false,
+                        "buttons": ["copy", "csv", "excel", "pdf", "print", "colvis"]
+                    }).buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
+                    $('#idIndexTable').DataTable({
+                        "paging": true,
+                        "lengthChange": false,
+                        "searching": true,
+                        "ordering": true,
+                        "info": true,
+                        "autoWidth": false,
+                        "responsive": true,
+                    });
+                    $.ajax({
+                        url: "/Users/GetUserlist",
+                        type: "GET",
+                        datatype: "json",
+                        contentType: "application/json; charset=utf-8",
+                        success: function (data) {
+                            debugger;
+                            $.each(data, function (i, v) {
+                                $('#idIndexTable').find('tbody')
+                                    .append('<tr>').append('<td width="20%">' + v.userId + '</td>')
+                                    .append('<td width="20%">' + v.firstName + '</td>')
+                                    .append('<td width="20%" >' + v.lastname + '</td>')
+                                    .append('<td width="20%" >' + v.emailAddress + '</td>')
+                                    .append('<td width="20%" >' +
+                                        '<a style="cursor:pointer;"  onClick="return fnGetUpdateDetailModal()"></a>' + + '</td>')
+                                    //'<a style="cursor:pointer;" class="icon_delete actionIcon" title="Delete Question" onClick="return DeleteQuestion(' + full.PKMedicalConditionMasterID + ')"><i class="fa fa-remove"></i></a>';
+                                    //   //.append('<td width="25%" class="Discount">' + v.Discount + '</td>')
+                                    //   //.append('<td width="25%" class="TotalPrice">' + v.TotalPrice + '</td>')
+                                    .append('<tr>');
+                            });
+                        }
+                    });
+                });
+            });
+
+
+        </script>*@
+
