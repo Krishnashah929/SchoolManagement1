@@ -4,12 +4,14 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using SM.Common;
 using SM.Entity;
 using SM.Models;
 using SM.Web.Data;
 using SM.Web.Models;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -17,6 +19,7 @@ using System.Net;
 using System.Net.Mail;
 using System.Security.Claims;
 using System.Threading.Tasks;
+ 
 
 namespace SM.Web.Controllers
 {
@@ -25,10 +28,15 @@ namespace SM.Web.Controllers
 
         private readonly SchoolManagementContext _schoolManagementContext;
         private readonly IHostingEnvironment _hostingEnvironment;
-        public AuthController(SchoolManagementContext schoolManagementContext, IHostingEnvironment hostingEnvironment)
+        private readonly IMemoryCache _memoryCache;
+
+        public object HttpCacheability { get; private set; }
+
+        public AuthController(SchoolManagementContext schoolManagementContext, IHostingEnvironment hostingEnvironment, IMemoryCache memoryCache)
         {
             _schoolManagementContext = schoolManagementContext;
             _hostingEnvironment = hostingEnvironment;
+            _memoryCache = memoryCache;
         }
 
         /// <summary>
@@ -57,7 +65,6 @@ namespace SM.Web.Controllers
         /// object of LoginModel is objLoginModel.
         /// </summary>
         #region Login(POST)
-        [AllowAnonymous]
         [HttpPost]
         public async Task<IActionResult> Login(LoginModel objloginModel)
         {
@@ -70,19 +77,41 @@ namespace SM.Web.Controllers
                 {
                     var userPassword = EncryptionDecryption.Encrypt(objloginModel.Password.ToString());
                     var loggedinUser = _schoolManagementContext.Users.FirstOrDefault(x => x.EmailAddress == objloginModel.EmailAddress && x.Password == userPassword);
+                    //Check the user name and password
+                    //Here can be implemented checking logic from the database
+                    ClaimsIdentity identity = null;
+                    bool isAuthenticated = false;
+
                     if (loggedinUser != null)
                     {
                         var Name = loggedinUser.FirstName + " " + loggedinUser.Lastname;
                         HttpContext.Session.SetString("Userlogeddin", "true");
                         HttpContext.Session.SetString("Name", Name);
-                       
-                        var claims = new List<Claim>();
-                        claims.Add(new Claim("emailAddress", objloginModel.EmailAddress));
-                        claims.Add(new Claim(ClaimTypes.NameIdentifier, objloginModel.EmailAddress));
-                        var claimIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                        var claimPrincipal = new ClaimsPrincipal(claimIdentity);
-                        await HttpContext.SignInAsync(claimPrincipal);
-                        return RedirectToAction("Index", "Users");
+
+                        //Create the identity for the user
+                        identity = new ClaimsIdentity(new[] {
+                        new Claim(ClaimTypes.Name, objloginModel.EmailAddress),
+                      new Claim(ClaimTypes.Role, "Admin")
+                   }, CookieAuthenticationDefaults.AuthenticationScheme);
+
+                        isAuthenticated = true;
+                        if (isAuthenticated)
+                        {
+                            var principal = new ClaimsPrincipal(identity);
+
+                            var login = HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+
+                            return RedirectToAction("Dashboard", "Home");
+                        }
+
+                        //var claims = new List<Claim>();
+                        //claims.Add(new Claim("emailAddress", objloginModel.EmailAddress));
+                        //claims.Add(new Claim(ClaimTypes.NameIdentifier, objloginModel.EmailAddress));
+                        //var claimIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                        ////var claimPrincipal = new ClaimsPrincipal(claimIdentity);
+                        ////await HttpContext.SignInAsync(claimPrincipal);
+                        //await HttpContext.SignInAsync(  
+                        //   CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimIdentity));
                     }
                     else
                     {
@@ -131,7 +160,6 @@ namespace SM.Web.Controllers
                 //Remove coloum name from validation ModelState.Remove 
                 ModelState.Remove("Password");
                 ModelState.Remove("RetypePassword");
-                string message = string.Empty;
                 if (ModelState.IsValid)
                 {
                     if (_schoolManagementContext.Users.Where(x => x.EmailAddress == objUser.EmailAddress).Count() == 0)
@@ -167,8 +195,8 @@ namespace SM.Web.Controllers
                     }
                     else
                     {
-                        message = CommonValidations.RecordExistsMsg;
-                        return Content(message);
+                        TempData["Error"] = CommonValidations.RecordExistsMsg;
+                        return View();
                     }
                 }
             }
@@ -212,13 +240,12 @@ namespace SM.Web.Controllers
         /// After logged out session will be clear and user will be redirect to Main Dashboard PAge.
         /// </summary>
         #region LogOut
-        public async Task<IActionResult> LogOut(String returnUrl)
+        public async Task<IActionResult> LogOut()
         {
             HttpContext.Session.SetString("Userlogeddin", "false");
-            ViewData["ReturnUrl"] = returnUrl;
-            HttpContext.Session.Clear();
-            //await HttpContext.SignOutAsync();
-            return RedirectToAction("Dashboard", "Home");
+            var Login = HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+          
+            return RedirectToAction("Login", "Auth");
         }
         #endregion
 

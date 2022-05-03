@@ -29,8 +29,10 @@ namespace SM.Web.Controllers
         /// Geeting all users with user repository.
         /// </summary>
         #region Index(GET)
-        [AllowAnonymous]
+        //[AllowAnonymous]
         [HttpGet]
+        [Authorize(Roles = "Admin")]
+        
         public IActionResult Index()
         {
             //var user = _unitOfWork.UserRepository.GetAll();
@@ -47,70 +49,70 @@ namespace SM.Web.Controllers
         }
         #endregion
 
-    //    public JsonResult GetFilteredItems()
-    //    {
-    //        int draw = Convert.ToInt32(Request.Query["draw"]);
+        //public JsonResult GetFilteredItems()
+        //{
+        //    int draw = Convert.ToInt32(Request.Query["draw"]);
 
-    //        // if 0 first "length" records will be fetched
-    //        // if 1 second "length" of records will be fethced ...
-    //        int start = Convert.ToInt32(Request.Query["start"]);
+        //    // if 0 first "length" records will be fetched
+        //    // if 1 second "length" of records will be fethced ...
+        //    int start = Convert.ToInt32(Request.Query["start"]);
 
-    //        // Records count to be fetched after skip
-    //        int length = Convert.ToInt32(Request.Query["length"]);
+        //    // Records count to be fetched after skip
+        //    int length = Convert.ToInt32(Request.Query["length"]);
 
-    //        // Getting Sort Column Name
-    //        int sortColumnIdx = Convert.ToInt32(Request.Query["order[0][column]"]);
-    //        string sortColumnName = Request.Query["columns[" + sortColumnIdx + "][name]"];
+        //    // Getting Sort Column Name
+        //    int sortColumnIdx = Convert.ToInt32(Request.Query["order[0][column]"]);
+        //    string sortColumnName = Request.Query["columns[" + sortColumnIdx + "][name]"];
 
-    //        // Sort Column Direction  
-    //        string sortColumnDirection = Request.Query["order[0][dir]"];
+        //    // Sort Column Direction  
+        //    string sortColumnDirection = Request.Query["order[0][dir]"];
 
-    //        // Search Value
-    //        string searchValue = Request.Query["search[value]"].FirstOrDefault()?.Trim();
+        //    // Search Value
+        //    string searchValue = Request.Query["search[value]"].FirstOrDefault()?.Trim();
 
-    //        // Total count matching search criteria 
-    //        int recordsFilteredCount =
-    //                _schoolManagementContext.Users
-    //                .Where(a => a.Lastname.Contains(searchValue) || a.FirstName.Contains(searchValue))
-    //                .Count();
+        //    // Total count matching search criteria 
+        //    int recordsFilteredCount =
+        //            _schoolManagementContext.Users
+        //            .Where(a => a.Lastname.Contains(searchValue) || a.FirstName.Contains(searchValue))
+        //            .Count();
 
-    //        // Total Records Count
-    //        int recordsTotalCount = _schoolManagementContext.Users.Count();
+        //    // Total Records Count
+        //    int recordsTotalCount = _schoolManagementContext.Users.Count();
 
-    //        // Filtered & Sorted & Paged data to be sent from server to view
-    //        List<User> filteredData = null;
-    //        if (sortColumnDirection == "asc")
-    //        {
-   
-    //            filteredData =
-    //               _schoolManagementContext.Users
-    //                .Where(a => a.Lastname.Contains(searchValue) || a.FirstName.Contains(searchValue))
-    //                .OrderBy(x => x.GetType())//Sort by sortColumn
-    //                .Skip(start)
-    //                .Take(length)
-    //                .ToList<User>();
-    //        }
-    //        else
-    //        {
-    //            filteredData =
-    //            _schoolManagementContext.Users
-    //               .Where(a => a.Lastname.Contains(searchValue) || a.FirstName.Contains(searchValue))
-    //               .OrderByDescending(x => x.GetType().GetProperty(sortColumnName).GetValue(x))
-    //               .Skip(start)
-    //               .Take(length)
-    //               .ToList<User>();
-    //        }
+        //    // Filtered & Sorted & Paged data to be sent from server to view
+        //    List<User> filteredData = null;
+        //    if (sortColumnDirection == "asc")
+        //    {
 
-    //        return Json(
-    //                    new
-    //                    {
-    //                        data = filteredData,
-    //                        draw = Request.Query["draw"],
-    //                        recordsFiltered = recordsFilteredCount,
-    //                        recordsTotal = recordsTotalCount
-    //                    }
-    //                );
-    //}
+        //        filteredData =
+        //           _schoolManagementContext.Users
+        //            .Where(a => a.Lastname.Contains(searchValue) || a.FirstName.Contains(searchValue))
+        //            .OrderBy(x => x.GetType().GetProperty(sortColumnName).GetValue(x))//Sort by sortColumn
+        //            .Skip(start)
+        //            .Take(length)
+        //            .ToList<User>();
+        //    }
+        //    else
+        //    {
+        //        filteredData =
+        //        _schoolManagementContext.Users
+        //           .Where(a => a.Lastname.Contains(searchValue) || a.FirstName.Contains(searchValue))
+        //           .OrderByDescending(x => x.GetType().GetProperty(sortColumnName).GetValue(x))
+        //           .Skip(start)
+        //           .Take(length)
+        //           .ToList<User>();
+        //    }
+
+        //    return Json(
+        //                new
+        //                {
+        //                    data = filteredData,
+        //                    draw = Request.Query["draw"],
+        //                    recordsFiltered = recordsFilteredCount,
+        //                    recordsTotal = recordsTotalCount
+        //                }
+        //            );
+        //}
 
         /// <summary>
         /// UpdateUserDetails is modal for get the details of particular user.

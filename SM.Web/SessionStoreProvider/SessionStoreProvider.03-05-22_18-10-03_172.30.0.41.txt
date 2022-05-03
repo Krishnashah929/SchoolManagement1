@@ -1,0 +1,10 @@
+TIMESTAMP                  	APPDOMAIN                                    	LOGGERNAME                                 	THREADNAME                                	LEVEL    	MESSAGE
+2022-05-03 18:10:05,952    	SM.Web                                       	SessionStoreProvider                       	1                                         	ERROR    	[Error]: Alachisoft.NCache.Runtime.Exceptions.ConfigurationException : 'client.ncconf' does not contain the configuration for cache 'SpecifytheCacheNameHere'
+   at Alachisoft.NCache.Client.Broker.TryNextServer()
+   at Alachisoft.NCache.Client.Broker.StartServices(String cacheId, String server, Int32 port)
+   at Alachisoft.NCache.Client.RemoteCache..ctor(String cacheId, Cache parent, Credentials securityParams, CacheConnectionOptions cacheConnectionOptions, StatisticsCounter perfStatsCol)
+   at Alachisoft.NCache.Client.CacheManager.GetCacheInternal(String cacheName, CacheConnectionOptions cacheConnectionOptions)
+   at Alachisoft.NCache.Client.CacheManager.GetCache(String cacheName, CacheConnectionOptions cacheConnectionOptions, Boolean isClientCache, Boolean isPessimistic)
+   at Alachisoft.NCache.Client.CacheManager.GetCache(String cacheName, CacheConnectionOptions cacheConnectionOptions, String clientCacheName, CacheConnectionOptions clientCacheConnectionOptions)
+   at Alachisoft.NCache.Caching.Distributed.NCacheDistributedCache.CheckAndInitializeCache()
+

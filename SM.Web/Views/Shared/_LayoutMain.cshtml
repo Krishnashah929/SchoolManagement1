@@ -1,5 +1,4 @@
 ﻿@using Microsoft.AspNetCore.Http;
-@{ var returnUrl = ViewData["ReturnUrl"] as string; }
 <!--LayoutMain is used for Dashboard-->
 <!DOCTYPE html>
 <html lang="en">
@@ -114,18 +113,6 @@
                                     <p>Dashboard</p>
                                 </a>
                             </li>
-                            <li class="nav-item">
-                                <a asp-action="Login" asp-controller="Auth" class="nav-link">
-                                    <i class="far fa-dot-circle nav-icon"></i>
-                                    <p>Login</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a asp-action="Register" asp-controller="Auth" class="nav-link">
-                                    <i class="far fa-dot-circle nav-icon"></i>
-                                    <p>Register</p>
-                                </a>
-                            </li>
                         }
                         else
                         {
@@ -135,18 +122,16 @@
                                     <p>Index</p>
                                 </a>
                             </li>
-
-
                             <li class="nav-item">
-                                <a asp-action="LogOut?ReturnUrl=@returnUrl" asp-controller="Auth" class="nav-link">
+                                <a asp-action="LogOut" asp-controller="Auth" class="nav-link">
                                     <i class="far fa-dot-circle nav-icon"></i>
                                     <p>LogOut</p>
                                 </a>
                             </li>
                         }
-                        
-                 
- 
+
+
+
                     </ul>
                 </nav>
                 <!-- /.sidebar-menu -->
@@ -183,6 +168,8 @@
     <script src="~/plugins/jquery-ui/jquery-ui.min.js"></script>
     <!-- Bootstrap 4 -->
     <script src="~/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <script src="~/plugins/moment/moment.min.js"></script>
     <!-- Tempusdominus Bootstrap 4 -->
     <script src="~/plugins/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js"></script>
     <!-- AdminLTE App -->

@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using SM.Entity;
 using SM.Repositories.IRepository;
 using SM.Web.Data;
 using SM.Web.Models;
+using System;
 using System.Diagnostics;
 
 namespace SM.Web.Controllers
@@ -18,14 +20,25 @@ namespace SM.Web.Controllers
         {
             _schoolManagementContext = schoolManagementContext;
         }
-       
+
         /// <summary>
         /// Main Dashboard when user is not logged in.
         /// </summary>
+        [AllowAnonymous]
         #region Dashboard
+        //[ResponseCache(NoStore = true, Duration = 0)]
+        [ResponseCache(CacheProfileName = "PrivateCache")]
         public IActionResult Dashboard()
         {
-            return View();
+            if (!Convert.ToBoolean(HttpContext.Session.GetString("Userlogeddin")))
+            {
+                return RedirectToAction("Login", "Auth");
+            }
+            else
+            {
+                return View();
+            }
+           
         }
         #endregion
 

@@ -39,7 +39,7 @@ namespace SM.Entity
         /// <summary>
         /// Email Address input feild.
         /// </summary>
-        [Required(ErrorMessage = CommonValidations.PleaseEnterValidEmail)]
+        [Required(ErrorMessage = CommonValidations.RequiredErrorMsg)]
         [MaxLength(50)]
         [DisplayName("Email")]
         public string EmailAddress { get; set; }

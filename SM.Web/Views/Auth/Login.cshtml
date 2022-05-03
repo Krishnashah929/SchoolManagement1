@@ -15,7 +15,7 @@
          <p class="login-box-msg">Sign in to start your session</p>
          @if (!string.IsNullOrEmpty(error))
          {
-            <span class="text-danger text-center">@error </span>
+            <span class="text-danger d-flex justify-content-center">@error </span>
          }
          <!-- Signin form -->
          <form id="idSigninForm" method="post" asp-action="Login" asp-controller="Auth">
