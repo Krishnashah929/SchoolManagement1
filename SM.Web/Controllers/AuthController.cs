@@ -239,6 +239,7 @@ namespace SM.Web.Controllers
         /// Set session "Userlogeddin" as false when user logged out from their session.
         /// After logged out session will be clear and user will be redirect to Main Dashboard PAge.
         /// </summary>
+        [Authorize]
         #region LogOut
         public async Task<IActionResult> LogOut()
         {

@@ -2,11 +2,21 @@
     Layout = "_LayoutUsers";
 }
 @{
+
     ViewData["Title"] = "Index";
+    //var returnurl = ViewData["ReturnUrl"] as string;
 }
 @model SM.Entity.User
- 
-    <link href="~/datatables/css/jquery.dataTables.css" rel="stylesheet" />
+
+<link href="~/datatables/css/jquery.dataTables.css" rel="stylesheet" />
+@{
+    if (!User.Identity.IsAuthenticated)
+    {
+        Context.Response.Redirect(Url.Action("Login", "Auth"));
+    }
+}
+@if (User.Identity.IsAuthenticated)
+{
 
     <div class="text-center pt-5 mb-5">
         <h1> Index Page </h1>
@@ -54,14 +64,17 @@
             </div>
         </div>
     </section>
-
-    <section id="Model1"></section>
-    <section id="Model2"></section>
+}
 
 
-    <script src="~/datatables/js/jquery.dataTables.js"></script>
 
-    <script type="text/javascript">
+<section id="Model1"></section>
+<section id="Model2"></section>
+
+
+<script src="~/datatables/js/jquery.dataTables.js"></script>
+
+<script type="text/javascript">
 
         $.fn.dataTable.pipeline = function (opts) {
             debugger;
@@ -269,59 +282,58 @@
                 }
             });
         }
+</script>
 
-    </script>
-
-    @*<script>
-            $(document).ready(function () {
-                $('#studentTable').DataTable();
-            });
-        </script>*@
-
+@*<script>
+        $(document).ready(function () {
+            $('#studentTable').DataTable();
+        });
+    </script>*@
 
 
 
-    @*<script type="text/javascript">
-            $(document).ready(function () {
-                $(function () {
-                    $("#idIndexTable").DataTable({
-                        "responsive": true, "lengthChange": false, "autoWidth": false,
-                        "buttons": ["copy", "csv", "excel", "pdf", "print", "colvis"]
-                    }).buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
-                    $('#idIndexTable').DataTable({
-                        "paging": true,
-                        "lengthChange": false,
-                        "searching": true,
-                        "ordering": true,
-                        "info": true,
-                        "autoWidth": false,
-                        "responsive": true,
-                    });
-                    $.ajax({
-                        url: "/Users/GetUserlist",
-                        type: "GET",
-                        datatype: "json",
-                        contentType: "application/json; charset=utf-8",
-                        success: function (data) {
-                            debugger;
-                            $.each(data, function (i, v) {
-                                $('#idIndexTable').find('tbody')
-                                    .append('<tr>').append('<td width="20%">' + v.userId + '</td>')
-                                    .append('<td width="20%">' + v.firstName + '</td>')
-                                    .append('<td width="20%" >' + v.lastname + '</td>')
-                                    .append('<td width="20%" >' + v.emailAddress + '</td>')
-                                    .append('<td width="20%" >' +
-                                        '<a style="cursor:pointer;"  onClick="return fnGetUpdateDetailModal()"></a>' + + '</td>')
-                                    //'<a style="cursor:pointer;" class="icon_delete actionIcon" title="Delete Question" onClick="return DeleteQuestion(' + full.PKMedicalConditionMasterID + ')"><i class="fa fa-remove"></i></a>';
-                                    //   //.append('<td width="25%" class="Discount">' + v.Discount + '</td>')
-                                    //   //.append('<td width="25%" class="TotalPrice">' + v.TotalPrice + '</td>')
-                                    .append('<tr>');
-                            });
-                        }
-                    });
+
+@*<script type="text/javascript">
+        $(document).ready(function () {
+            $(function () {
+                $("#idIndexTable").DataTable({
+                    "responsive": true, "lengthChange": false, "autoWidth": false,
+                    "buttons": ["copy", "csv", "excel", "pdf", "print", "colvis"]
+                }).buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
+                $('#idIndexTable').DataTable({
+                    "paging": true,
+                    "lengthChange": false,
+                    "searching": true,
+                    "ordering": true,
+                    "info": true,
+                    "autoWidth": false,
+                    "responsive": true,
+                });
+                $.ajax({
+                    url: "/Users/GetUserlist",
+                    type: "GET",
+                    datatype: "json",
+                    contentType: "application/json; charset=utf-8",
+                    success: function (data) {
+                        debugger;
+                        $.each(data, function (i, v) {
+                            $('#idIndexTable').find('tbody')
+                                .append('<tr>').append('<td width="20%">' + v.userId + '</td>')
+                                .append('<td width="20%">' + v.firstName + '</td>')
+                                .append('<td width="20%" >' + v.lastname + '</td>')
+                                .append('<td width="20%" >' + v.emailAddress + '</td>')
+                                .append('<td width="20%" >' +
+                                    '<a style="cursor:pointer;"  onClick="return fnGetUpdateDetailModal()"></a>' + + '</td>')
+                                //'<a style="cursor:pointer;" class="icon_delete actionIcon" title="Delete Question" onClick="return DeleteQuestion(' + full.PKMedicalConditionMasterID + ')"><i class="fa fa-remove"></i></a>';
+                                //   //.append('<td width="25%" class="Discount">' + v.Discount + '</td>')
+                                //   //.append('<td width="25%" class="TotalPrice">' + v.TotalPrice + '</td>')
+                                .append('<tr>');
+                        });
+                    }
                 });
             });
+        });
 
 
-        </script>*@
+    </script>*@
 

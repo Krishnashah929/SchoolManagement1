@@ -12,6 +12,7 @@ using System.Linq;
 
 namespace SM.Web.Controllers
 {
+    [ResponseCache(CacheProfileName = "Default0")]
     public class UsersController : Controller
     {
         private readonly SchoolManagementContext _schoolManagementContext;
@@ -30,21 +31,20 @@ namespace SM.Web.Controllers
         /// </summary>
         #region Index(GET)
         //[AllowAnonymous]
-        [HttpGet]
+        [HttpGet("/Index")]
         [Authorize(Roles = "Admin")]
-        
         public IActionResult Index()
         {
             //var user = _unitOfWork.UserRepository.GetAll();
             //ViewBag.users = user;
-            //user f
-            if (!Convert.ToBoolean(HttpContext.Session.GetString("Userlogeddin")))
+
+            if (User.Identity.IsAuthenticated == true)
             {
-                return RedirectToAction("Login", "Auth");
+                return View();
             }
             else
             {
-                return View();
+                return RedirectToAction("Login", "Auth");
             }
         }
         #endregion

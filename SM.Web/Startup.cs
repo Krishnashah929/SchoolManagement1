@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -36,32 +37,51 @@ namespace SM.Web
             services.AddTransient<IUserRepository, UserRepository>();
             services.AddTransient<IUnitOfWork, UnitOfWork>();
 
+            //For authentication purpose.
             services.Configure<CookiePolicyOptions>(options =>
             {
                 // This lambda determines whether user consent for non-essential cookies is needed for a given request.
                 options.CheckConsentNeeded = context => true;
                 options.MinimumSameSitePolicy = SameSiteMode.None;
+              
+            });
+            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(options =>
+            {
+                options.ExpireTimeSpan = TimeSpan.FromMinutes(20);
+                options.SlidingExpiration = true;
+                options.AccessDeniedPath = "/User/Login";
             });
 
-            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie();
             services.AddSession();
+
             //For cacheing purpose
-            services.AddResponseCaching();
-            services.AddMvc();
-            services.AddNCacheDistributedCache(options =>
+            //services.AddResponseCaching();
+            services.AddMvc(options =>
             {
-                //options.CacheName = "PrivateCache";
-                //options.EnableLogs = true;
-                //options.ExceptionsEnabled = true;
-                options.CacheName = "PrivateCache";
-                _ = (new CacheProfile()
-                {
-                    NoStore = true,
-                    Duration = 0,
-                    //Location = ResponseCacheLocation.None
-                });
+                // This pushes users to login if not authenticated
+                //options.Filters.Add(new AuthorizeFilter());
+
+                options.CacheProfiles.Add("Default0",
+                    new CacheProfile()
+                    {
+                        Duration = 0,
+                        NoStore = true
+                    });
             });
-  
+            //services.AddNCacheDistributedCache(options =>
+            //{
+            //    options.CacheName = "PrivateCache";
+            //    options.EnableLogs = true;
+            //    options.ExceptionsEnabled = true;
+            //    //options.CacheName = "PrivateCache";
+            //    //_ = (new CacheProfile()
+            //    //{
+            //    //    NoStore = true,
+            //    //    Duration = 0,
+            //    //    //Location = ResponseCacheLocation.None
+            //    //});
+            //});
+
             services.AddControllersWithViews();
             services.AddDistributedMemoryCache();
  
@@ -125,15 +145,13 @@ namespace SM.Web
 
             app.UseRouting();
 
-            app.UseResponseCaching();
+            //app.UseResponseCaching();
 
             app.UseCookiePolicy(cookiePolicyOptions);
 
             app.UseAuthentication();
 
             app.UseAuthorization();
-
-           
 
             app.UseEndpoints(endpoints =>
             {

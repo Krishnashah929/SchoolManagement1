@@ -11,9 +11,9 @@ using System.Diagnostics;
 
 namespace SM.Web.Controllers
 {
+    [ResponseCache(CacheProfileName = "Default0")]
     public class HomeController : Controller
     {
-
         private readonly SchoolManagementContext _schoolManagementContext;
        
         public HomeController(SchoolManagementContext schoolManagementContext)
@@ -26,8 +26,8 @@ namespace SM.Web.Controllers
         /// </summary>
         [AllowAnonymous]
         #region Dashboard
-        //[ResponseCache(NoStore = true, Duration = 0)]
-        [ResponseCache(CacheProfileName = "PrivateCache")]
+        //[ResponseCache(CacheProfileName = "default")]
+        //[ResponseCache(CacheProfileName = "PrivateCache")]
         public IActionResult Dashboard()
         {
             if (!Convert.ToBoolean(HttpContext.Session.GetString("Userlogeddin")))
@@ -38,7 +38,6 @@ namespace SM.Web.Controllers
             {
                 return View();
             }
-           
         }
         #endregion
 
