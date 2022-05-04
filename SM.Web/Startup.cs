@@ -60,11 +60,11 @@ namespace SM.Web
             {
                 // This pushes users to login if not authenticated
                 //options.Filters.Add(new AuthorizeFilter());
-
+                    
                 options.CacheProfiles.Add("Default0",
                     new CacheProfile()
                     {
-                        Duration = 0,
+                        Duration = 0,   
                         NoStore = true
                     });
             });

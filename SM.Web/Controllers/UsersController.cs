@@ -31,8 +31,7 @@ namespace SM.Web.Controllers
         /// </summary>
         #region Index(GET)
         //[AllowAnonymous]
-        [HttpGet("/Index")]
-        [Authorize(Roles = "Admin")]
+        [HttpGet]
         public IActionResult Index()
         {
             //var user = _unitOfWork.UserRepository.GetAll();
