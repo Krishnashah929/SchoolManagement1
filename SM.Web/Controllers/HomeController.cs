@@ -11,32 +11,33 @@ using System.Diagnostics;
 
 namespace SM.Web.Controllers
 {
+    /// <summary>
+    /// Calling cache from startup.cs
+    /// </summary>
     [ResponseCache(CacheProfileName = "Default0")]
     public class HomeController : Controller
     {
-        private readonly SchoolManagementContext _schoolManagementContext;
-       
-        public HomeController(SchoolManagementContext schoolManagementContext)
-        {
-            _schoolManagementContext = schoolManagementContext;
-        }
-
         /// <summary>
         /// Main Dashboard when user is not logged in.
         /// </summary>
-        [AllowAnonymous]
+        //[Authorize("Admin")]
         #region Dashboard
-        //[ResponseCache(CacheProfileName = "default")]
-        //[ResponseCache(CacheProfileName = "PrivateCache")]
         public IActionResult Dashboard()
         {
-            if (!Convert.ToBoolean(HttpContext.Session.GetString("Userlogeddin")))
+            try
             {
-                return RedirectToAction("Login", "Auth");
+                if(User.Identity.IsAuthenticated == true)
+                {
+                    return View();
+                }
+                else
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
             }
-            else
+            catch (Exception)
             {
-                return View();
+                return View("Error");
             }
         }
         #endregion

@@ -11,7 +11,6 @@ namespace SM.Entity
 {
     public partial class User
     {
-        public string setPasswordCode;
 
         public User()
         {
@@ -24,7 +23,7 @@ namespace SM.Entity
         /// FirstName input feild.
         /// </summary>
         [Required(ErrorMessage = CommonValidations.RequiredErrorMsg)]
-        [MaxLength(10)]
+        [StringLength(8, ErrorMessage = CommonValidations.RequiredLengthErrorMsg, MinimumLength = 6)]
         [DisplayName ("First Name")]
         public string FirstName { get; set; }
 
@@ -32,7 +31,7 @@ namespace SM.Entity
         /// LastName input feild.
         /// </summary>
         [Required(ErrorMessage = CommonValidations.RequiredErrorMsg)]
-        [MaxLength(10)]
+        [StringLength(8, ErrorMessage = CommonValidations.RequiredLengthErrorMsg, MinimumLength = 6)]
         [DisplayName("Last Name")]
         public string Lastname { get; set; }
 
@@ -40,7 +39,8 @@ namespace SM.Entity
         /// Email Address input feild.
         /// </summary>
         [Required(ErrorMessage = CommonValidations.RequiredErrorMsg)]
-        [MaxLength(50)]
+        //[StringLength(8, ErrorMessage = CommonValidations.RequiredLengthMailErrorMsg)]
+        //[MinLength(5, ErrorMessage = CommonValidations.RequiredLengthMailErrorMsg)]
         [DisplayName("Email")]
         public string EmailAddress { get; set; }
 
@@ -49,7 +49,7 @@ namespace SM.Entity
         /// </summary>
         [Required(ErrorMessage = CommonValidations.RequiredErrorMsg)]
         [DataType(DataType.Password)]
-        [MaxLength(10)]
+        [StringLength(10, ErrorMessage = CommonValidations.RequiredLengthErrorMsg, MinimumLength = 8)]
         [DisplayName("Password")]
         public string Password { get; set; }
 
@@ -103,9 +103,15 @@ namespace SM.Entity
         [Required(ErrorMessage = CommonValidations.RetypePasswordMesg)]
         [Compare("Password", ErrorMessage = CommonValidations.ComparePasswordMsg)]
         [DataType(DataType.Password)]
-        [MaxLength(10)]
         [DisplayName("Reenter Password")]
         public string RetypePassword { get; set; }
         public virtual ICollection<UserRole> UserRoles { get; set; }
+
+        public string Role { get; set; }
+        //public IEnumerable<User> GetUsers()
+        //{
+        //    return new List<User>() { new User { UserId = 101, FirstName = "Krishna", Lastname = "Shahhh", EmailAddress = "kdshah929@gmail.com", Password = "12345678", Role = "Admin" };
+        //}
     }
 }
+

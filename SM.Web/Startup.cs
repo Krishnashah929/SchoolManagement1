@@ -1,5 +1,7 @@
 using Alachisoft.NCache.Caching.Distributed;
+using CustomHandlers.CustomHandler;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -38,19 +40,38 @@ namespace SM.Web
             services.AddTransient<IUnitOfWork, UnitOfWork>();
 
             //For authentication purpose.
-            services.Configure<CookiePolicyOptions>(options =>
+            //services.Configure<CookiePolicyOptions>(options =>
+            //{
+            //    // This lambda determines whether user consent for non-essential cookies is needed for a given request.
+            //    options.CheckConsentNeeded = context => true;
+            //    options.MinimumSameSitePolicy = SameSiteMode.None;
+
+            //});
+            //services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(options =>
+            //{
+            //    options.ExpireTimeSpan = TimeSpan.FromMinutes(20);
+            //    options.SlidingExpiration = true;
+            //    options.AccessDeniedPath = "/User/Login";
+            //});
+            
+            services.AddAuthentication("CookieAuthentication")
+                 .AddCookie("CookieAuthentication", config =>
+                 {
+                     config.Cookie.Name = "UserLoginCookie"; // Name of cookie     
+                     config.LoginPath = "/Auth/Login"; // Path for the redirect to user login page    
+                     config.AccessDeniedPath = "/Auth/Login";
+                 });
+
+            services.AddAuthorization(config =>
             {
-                // This lambda determines whether user consent for non-essential cookies is needed for a given request.
-                options.CheckConsentNeeded = context => true;
-                options.MinimumSameSitePolicy = SameSiteMode.None;
-              
+                config.AddPolicy("UserPolicy", policyBuilder =>
+                {
+                    policyBuilder.UserRequireCustomClaim(ClaimTypes.Email);
+                });
             });
-            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(options =>
-            {
-                options.ExpireTimeSpan = TimeSpan.FromMinutes(20);
-                options.SlidingExpiration = true;
-                options.AccessDeniedPath = "/User/Login";
-            });
+
+            services.AddScoped<IAuthorizationHandler, PoliciesAuthorizationHandler>();
+            services.AddScoped<IAuthorizationHandler, RolesAuthorizationHandler>();
 
             services.AddSession();
 
@@ -60,14 +81,15 @@ namespace SM.Web
             {
                 // This pushes users to login if not authenticated
                 //options.Filters.Add(new AuthorizeFilter());
-                    
+
                 options.CacheProfiles.Add("Default0",
                     new CacheProfile()
                     {
-                        Duration = 0,   
+                        Duration = 0,
                         NoStore = true
                     });
             });
+
             //services.AddNCacheDistributedCache(options =>
             //{
             //    options.CacheName = "PrivateCache";
@@ -83,39 +105,9 @@ namespace SM.Web
             //});
 
             services.AddControllersWithViews();
+
             services.AddDistributedMemoryCache();
  
-            //services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-            //    .AddCookie(options =>
-            //    {
-            //        //options.LoginPath = "/Auth/Login";
-            //        options.Events = new CookieAuthenticationEvents()
-            //        {
-            //            OnSigningIn = async context =>
-            //            {
-            //                var principal = context.Principal;
-            //                if (principal.HasClaim(x => x.Type == ClaimTypes.NameIdentifier))
-            //                {
-            //                    if (principal.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier).Value == "kdshah929@gmail.com")
-            //                    {
-            //                        var claimsIdentity = principal.Identity as ClaimsIdentity;
-            //                        claimsIdentity.AddClaim(new Claim(ClaimTypes.Role, "Admin"));
-            //                    }
-            //                }
-            //                await Task.CompletedTask;
-            //            },
-            //            OnSignedIn = async context =>
-            //            {
-            //                await Task.CompletedTask;
-            //            },
-            //            OnSigningOut = async context =>
-            //            {
-            //                await Task.CompletedTask;
-            //            },
-            //        };
-            //    });
-       
-
             services.AddRazorPages().AddRazorRuntimeCompilation();
 
             services.AddDbContext<SchoolManagementContext>(options => options.UseSqlServer(Configuration.GetConnectionString("SchoolManagementContext")));
@@ -138,6 +130,7 @@ namespace SM.Web
             else
             {
                 app.UseExceptionHandler("/Home/Error");
+                app.UseHsts();
             }
             app.UseStaticFiles();
 
@@ -149,8 +142,10 @@ namespace SM.Web
 
             app.UseCookiePolicy(cookiePolicyOptions);
 
+            // who are you?  
             app.UseAuthentication();
 
+            // are you allowed?  
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>

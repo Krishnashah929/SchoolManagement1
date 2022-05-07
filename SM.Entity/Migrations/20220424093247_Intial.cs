@@ -24,6 +24,7 @@ namespace SM.Entity.Migrations
                     CreatedDate = table.Column<DateTime>(type: "datetime", nullable: false),
                     ModifiedBy = table.Column<int>(type: "int", nullable: true),
                     ModifiedDate = table.Column<DateTime>(type: "datetime", nullable: true)
+
                 },
                 constraints: table =>
                 {

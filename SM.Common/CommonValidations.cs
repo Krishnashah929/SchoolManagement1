@@ -35,9 +35,9 @@ namespace SM.Common
         public const string PleaseEnterValidEmail = "Please enter a valid Email Address.";
 
         /// <summary>
-        /// The required strong password error message...
+        /// The required length  error message...
         /// </summary>
-        public const string RequiredStrongPwdErrorMsg = "Your password must be at least 8 characters long, contain at least one number and have a mixture of uppercase and lowercase letters.";
+        public const string RequiredLengthErrorMsg = "{0} length must be between {2} and {1}.";
 
         /// <summary>
         /// The invalid mobile error message...

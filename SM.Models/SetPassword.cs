@@ -16,7 +16,6 @@ namespace SM.Models
         /// Email Address input feild.
         /// </summary>
         [Required(ErrorMessage = CommonValidations.PleaseEnterValidEmail)]
-        [MaxLength(50)]
         [DisplayName("Email")]
         public string EmailAddress { get; set; }
 
@@ -25,7 +24,7 @@ namespace SM.Models
         /// </summary>
         [Required(ErrorMessage = CommonValidations.RequiredErrorMsg)]
         [DataType(DataType.Password)]
-        [MaxLength(10)]
+        [StringLength(10, ErrorMessage = CommonValidations.RequiredLengthErrorMsg, MinimumLength = 8)]
         [DisplayName("Password")]
         public string Password { get; set; }
 
@@ -37,7 +36,6 @@ namespace SM.Models
         [Required(ErrorMessage = CommonValidations.RetypePasswordMesg)]
         [Compare("Password", ErrorMessage = CommonValidations.ComparePasswordMsg)]
         [DataType(DataType.Password)]
-        [MaxLength(10)]
         [DisplayName("Reenter Passwird")]
         public string RetypePassword { get; set; }
 

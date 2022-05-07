@@ -8,6 +8,7 @@ using Microsoft.Extensions.Caching.Memory;
 using SM.Common;
 using SM.Entity;
 using SM.Models;
+using SM.Repositories.IRepository;
 using SM.Web.Data;
 using SM.Web.Models;
 using System;
@@ -19,7 +20,7 @@ using System.Net;
 using System.Net.Mail;
 using System.Security.Claims;
 using System.Threading.Tasks;
- 
+
 
 namespace SM.Web.Controllers
 {
@@ -27,16 +28,20 @@ namespace SM.Web.Controllers
     {
 
         private readonly SchoolManagementContext _schoolManagementContext;
+        [Obsolete]
         private readonly IHostingEnvironment _hostingEnvironment;
-        private readonly IMemoryCache _memoryCache;
+        private IUserRepository _userRepository;
+
+        private bool errorflag;
 
         public object HttpCacheability { get; private set; }
 
-        public AuthController(SchoolManagementContext schoolManagementContext, IHostingEnvironment hostingEnvironment, IMemoryCache memoryCache)
+        [Obsolete]
+        public AuthController(SchoolManagementContext schoolManagementContext, IHostingEnvironment hostingEnvironment, IUserRepository userRepository)
         {
             _schoolManagementContext = schoolManagementContext;
             _hostingEnvironment = hostingEnvironment;
-            _memoryCache = memoryCache;
+            _userRepository = userRepository;
         }
 
         /// <summary>
@@ -47,14 +52,21 @@ namespace SM.Web.Controllers
         [HttpGet]
         public IActionResult Login()
         {
-            //if user is already logged in then they can't go back to login page
-            if (Convert.ToBoolean(HttpContext.Session.GetString("Userlogeddin")))
+            try
             {
-                return RedirectToAction("Index", "Users");
+                //if user is already logged in then they can't go back to login page
+                if (Convert.ToBoolean(HttpContext.Session.GetString("Userlogeddin")))
+                {
+                    return RedirectToAction("Index", "Users");
+                }
+                else
+                {
+                    return View();
+                }
             }
-            else
+            catch (Exception)
             {
-                return View();
+                return View("Error");
             }
         }
         #endregion
@@ -66,7 +78,7 @@ namespace SM.Web.Controllers
         /// </summary>
         #region Login(POST)
         [HttpPost]
-        public async Task<IActionResult> Login(LoginModel objloginModel)
+        public IActionResult Login(LoginModel objloginModel, User getUser)
         {
             try
             {
@@ -76,11 +88,12 @@ namespace SM.Web.Controllers
                 if (ModelState.IsValid)
                 {
                     var userPassword = EncryptionDecryption.Encrypt(objloginModel.Password.ToString());
-                    var loggedinUser = _schoolManagementContext.Users.FirstOrDefault(x => x.EmailAddress == objloginModel.EmailAddress && x.Password == userPassword);
-                    //Check the user name and password
+
+                    //Check the user email and password
+                    var loggedinUser = _userRepository.GetById(getUser);
+                    //var loggedinUser = _schoolManagementContext.Users.FirstOrDefault(x => x.EmailAddress == objloginModel.EmailAddress && x.Password == userPassword);
+
                     //Here can be implemented checking logic from the database
-                    ClaimsIdentity identity = null;
-                    bool isAuthenticated = false;
 
                     if (loggedinUser != null)
                     {
@@ -88,30 +101,31 @@ namespace SM.Web.Controllers
                         HttpContext.Session.SetString("Userlogeddin", "true");
                         HttpContext.Session.SetString("Name", Name);
 
-                        //Create the identity for the user
-                        identity = new ClaimsIdentity(new[] {
-                        new Claim(ClaimTypes.Name, objloginModel.EmailAddress),
-                      new Claim(ClaimTypes.Role, "Admin")
-                   }, CookieAuthenticationDefaults.AuthenticationScheme);
-
-                        isAuthenticated = true;
-                        if (isAuthenticated)
+                        var userClaims = new List<Claim>()
                         {
-                            var principal = new ClaimsPrincipal(identity);
+                             new Claim("UserEmail", objloginModel.EmailAddress),
+                             new Claim(ClaimTypes.Email, objloginModel.EmailAddress),
+                             //new Claim(ClaimTypes.Role, objloginModel.Role.ToString())
+                        };
 
-                            var login = HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+                        var userIdentity = new ClaimsIdentity(userClaims, "User Identity");
 
-                            return RedirectToAction("Dashboard", "Home");
-                        }
+                        var userPrincipal = new ClaimsPrincipal(new[] { userIdentity });
+                        HttpContext.SignInAsync(userPrincipal);
 
-                        //var claims = new List<Claim>();
-                        //claims.Add(new Claim("emailAddress", objloginModel.EmailAddress));
-                        //claims.Add(new Claim(ClaimTypes.NameIdentifier, objloginModel.EmailAddress));
-                        //var claimIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                        ////var claimPrincipal = new ClaimsPrincipal(claimIdentity);
-                        ////await HttpContext.SignInAsync(claimPrincipal);
-                        //await HttpContext.SignInAsync(  
-                        //   CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimIdentity));
+                        //ClaimsIdentity identity = null;
+                        ////Create the identity for the user
+                        //identity = new ClaimsIdentity(new[]
+                        //{
+                        //    new Claim(ClaimTypes.Name, objloginModel.EmailAddress),
+                        //    new Claim(ClaimTypes.Role, "Admin")
+                        //},
+                        //    CookieAuthenticationDefaults.AuthenticationScheme);
+
+                        //var principal = new ClaimsPrincipal(identity);
+                        //var login = HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+
+                        return RedirectToAction("Dashboard", "Home");
                     }
                     else
                     {
@@ -135,14 +149,21 @@ namespace SM.Web.Controllers
         [HttpGet]
         public IActionResult Register()
         {
-            //if user is already logged in then they can't go back to register page
-            if (Convert.ToBoolean(HttpContext.Session.GetString("Userlogeddin")))
+            try
             {
-                return RedirectToAction("Index", "Users");
+                //if user is already logged in then they can't go back to register page
+                if (Convert.ToBoolean(HttpContext.Session.GetString("Userlogeddin")))
+                {
+                    return RedirectToAction("Index", "Users");
+                }
+                else
+                {
+                    return View();
+                }
             }
-            else
+            catch (Exception)
             {
-                return View();
+                return View("Error");
             }
         }
         #endregion
@@ -153,6 +174,7 @@ namespace SM.Web.Controllers
         /// </summary>
         #region Register(POST)
         [HttpPost]
+        [Obsolete]
         public IActionResult Register(User objUser)
         {
             try
@@ -167,6 +189,7 @@ namespace SM.Web.Controllers
                         objUser.Password = string.Empty;
                         objUser.CreatedDate = DateTime.Now;
                         objUser.IsActive = false;
+                        objUser.Role = "Admin";
 
                         _schoolManagementContext.Users.Add(objUser);
                         _schoolManagementContext.SaveChanges();
@@ -214,22 +237,29 @@ namespace SM.Web.Controllers
         #region SendEmail
         private void SendEmail(string email, string body, string subject)
         {
-            using (MailMessage mm = new MailMessage("krishnaa9121@gmail.com", email))
+            try
             {
-                mm.Subject = subject;
-                mm.Body = body;
-                mm.IsBodyHtml = true;
-
-                using (SmtpClient smtp = new SmtpClient())
+                using (MailMessage mm = new MailMessage("krishnaa9121@gmail.com", email))
                 {
-                    smtp.Host = "smtp.gmail.com";
-                    smtp.EnableSsl = true;
-                    NetworkCredential NetworkCred = new NetworkCredential("krishnaa9121@gmail.com", "Kri$hn@91");
-                    smtp.UseDefaultCredentials = false;
-                    smtp.Credentials = NetworkCred;
-                    smtp.Port = 587;
-                    smtp.Send(mm);
+                    mm.Subject = subject;
+                    mm.Body = body;
+                    mm.IsBodyHtml = true;
+
+                    using (SmtpClient smtp = new SmtpClient())
+                    {
+                        smtp.Host = "smtp.gmail.com";
+                        smtp.EnableSsl = true;
+                        NetworkCredential NetworkCred = new NetworkCredential("krishnaa9121@gmail.com", "Kri$hn@91");
+                        smtp.UseDefaultCredentials = false;
+                        smtp.Credentials = NetworkCred;
+                        smtp.Port = 587;
+                        smtp.Send(mm);
+                    }
                 }
+            }
+            catch (Exception)
+            {
+                errorflag = true;
             }
         }
         #endregion
@@ -241,12 +271,19 @@ namespace SM.Web.Controllers
         /// </summary>
         [Authorize]
         #region LogOut
-        public async Task<IActionResult> LogOut()
+        public IActionResult LogOut()
         {
-            HttpContext.Session.SetString("Userlogeddin", "false");
-            var Login = HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-          
-            return RedirectToAction("Login", "Auth");
+            try
+            {
+                HttpContext.Session.SetString("Userlogeddin", "false");
+                var Login = HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+                return RedirectToAction("Login", "Auth");
+            }
+            catch (Exception)
+            {
+                return View("Error");
+            }
         }
         #endregion
 

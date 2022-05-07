@@ -28,17 +28,49 @@ namespace SM.Repositories.Repository
                 throw ex;
             }
         }
-        public User GetById(int UserId)
+        public User GetById(User user)
         {
             try
             {
-                return _schoolManagementContext.Users.Where(x => x.UserId == UserId).FirstOrDefault();
+                User getUser = new User();
+                getUser = _schoolManagementContext.Users.FirstOrDefault(x => x.EmailAddress == user.EmailAddress);
+                if (getUser != null)
+                {
+                    getUser.EmailAddress = user.EmailAddress;
+                    getUser.Password = user.Password;
+
+                    _schoolManagementContext.SaveChanges();
+                }
+                return getUser;
             }
             catch (Exception ex)
             {
                 throw ex;
             }
         }
+        public User Register(User user)
+        {
+            try
+            {
+                User registerUser = new User();
+                registerUser = _schoolManagementContext.Users.FirstOrDefault(x => x.EmailAddress == user.EmailAddress);
+                if (_schoolManagementContext.Users.Where(x => x.EmailAddress == user.EmailAddress).Count() == 0)
+                {
+                    registerUser.Password = string.Empty;
+                    registerUser.CreatedDate = DateTime.Now;
+                    registerUser.IsActive = false;
+
+                    _schoolManagementContext.Users.Add(registerUser);
+                    _schoolManagementContext.SaveChanges();
+                }
+                return registerUser;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
         public User Delete(User user)
         {
             try

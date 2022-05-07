@@ -10,9 +10,11 @@ namespace SM.Repositories.IRepository
     public interface IUserRepository
     {
         IEnumerable<User> GetAll();
-        User GetById(int UserId);
+        User GetById(User user);
+        User Register(User user);
         User Update(User user);
         User Delete(User user);
+         
         //void Insert(User user);
         //void Update(User user);
         //void Delete(User user);

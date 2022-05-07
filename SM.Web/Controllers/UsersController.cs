@@ -1,27 +1,30 @@
-﻿using AspNetCore.PaginatedList;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using SM.Entity;
 using SM.Repositories.IRepository;
 using SM.Web.Data;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace SM.Web.Controllers
 {
+    /// <summary>
+    /// Calling cache from startup.cs
+    /// </summary>
     [ResponseCache(CacheProfileName = "Default0")]
     public class UsersController : Controller
     {
         private readonly SchoolManagementContext _schoolManagementContext;
-        private IUnitOfWork _unitOfWork;
         private IUserRepository _userRepository;
-        public UsersController(SchoolManagementContext schoolManagementContext, IUnitOfWork unitOfWork, IUserRepository userRepository)
+
+        /// <summary>
+        /// Constructor of an object 
+        /// </summary>
+        /// <param name="schoolManagementContext"></param>
+        /// <param name="userRepository"></param>
+        public UsersController(SchoolManagementContext schoolManagementContext, IUserRepository userRepository)
         {
             _schoolManagementContext = schoolManagementContext;
-            _unitOfWork = unitOfWork;
             _userRepository = userRepository;
         }
 
@@ -30,20 +33,26 @@ namespace SM.Web.Controllers
         /// Geeting all users with user repository.
         /// </summary>
         #region Index(GET)
-        //[AllowAnonymous]
+        [Authorize(Roles = "Admin")]
         [HttpGet]
         public IActionResult Index()
         {
             //var user = _unitOfWork.UserRepository.GetAll();
             //ViewBag.users = user;
-
-            if (User.Identity.IsAuthenticated == true)
+            try
             {
-                return View();
+                if (User.Identity.IsAuthenticated == true)
+                {
+                    return View();
+                }
+                else
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
             }
-            else
+            catch (Exception)
             {
-                return RedirectToAction("Login", "Auth");
+                return View("Error");
             }
         }
         #endregion
