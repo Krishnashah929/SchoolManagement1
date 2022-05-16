@@ -1,8 +1,8 @@
-﻿using Microsoft.AspNetCore.Authorization;  
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
 using SM.Entity;
 using SM.Repositories.IRepository;
-using System.Linq;  
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace CustomHandlers.CustomHandler
@@ -36,7 +36,7 @@ namespace CustomHandlers.CustomHandler
                 var claims = context.User.Claims;
                 var userEmail = claims.FirstOrDefault(c => c.Type == "UserEmail").Value;
                 var roles = requirement.AllowedRoles;
-                //validRole = _userRepository.GetAll().Where(p => roles.Contains(p.Role) && p.EmailAddress == userEmail).Any();
+                validRole = _userRepository.GetAll().Where(p => roles.Contains(p.Role) && p.EmailAddress == userEmail).Any();
                 //validRole = new User().GetUsers().Where(p => roles.Contains(p.Role) && p.EmailAddress == userEmail).Any();
 
                 //validRole = new User.Where(p => roles.Contains(p.Role) && p.EmaiAddress == UserEmail).Any();
@@ -45,12 +45,15 @@ namespace CustomHandlers.CustomHandler
             if (validRole)
             {
                 context.Succeed(requirement);
+                return Task.CompletedTask;
             }
             else
             {
-                context.Fail();
+                return Task.FromResult(0);
+                //return Task.CompletedTask;
+
             }
-            return Task.CompletedTask;
+            //return Task.CompletedTask;
         }
     }
 }

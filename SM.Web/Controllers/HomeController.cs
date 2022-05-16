@@ -20,13 +20,13 @@ namespace SM.Web.Controllers
         /// <summary>
         /// Main Dashboard when user is not logged in.
         /// </summary>
-        //[Authorize("Admin")]
+        [Authorize(Roles = "Admin")]
         #region Dashboard
         public IActionResult Dashboard()
         {
             try
             {
-                if(User.Identity.IsAuthenticated == true)
+                if (User.Identity.IsAuthenticated == true)
                 {
                     return View();
                 }

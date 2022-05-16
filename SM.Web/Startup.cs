@@ -53,13 +53,13 @@ namespace SM.Web
             //    options.SlidingExpiration = true;
             //    options.AccessDeniedPath = "/User/Login";
             //});
-            
-            services.AddAuthentication("CookieAuthentication")
-                 .AddCookie("CookieAuthentication", config =>
+
+            services.AddAuthentication("Cookies")
+                 .AddCookie("Cookies", config =>
                  {
                      config.Cookie.Name = "UserLoginCookie"; // Name of cookie     
                      config.LoginPath = "/Auth/Login"; // Path for the redirect to user login page    
-                     config.AccessDeniedPath = "/Auth/Login";
+                     config.AccessDeniedPath = "/Auth/Error";
                  });
 
             services.AddAuthorization(config =>
@@ -107,7 +107,7 @@ namespace SM.Web
             services.AddControllersWithViews();
 
             services.AddDistributedMemoryCache();
- 
+
             services.AddRazorPages().AddRazorRuntimeCompilation();
 
             services.AddDbContext<SchoolManagementContext>(options => options.UseSqlServer(Configuration.GetConnectionString("SchoolManagementContext")));

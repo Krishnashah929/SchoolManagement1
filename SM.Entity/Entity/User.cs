@@ -108,6 +108,10 @@ namespace SM.Entity
         public virtual ICollection<UserRole> UserRoles { get; set; }
 
         public string Role { get; set; }
+
+        //this line for the mailing services//
+        public string ResetPasswordCode { get; set; }
+
         //public IEnumerable<User> GetUsers()
         //{
         //    return new List<User>() { new User { UserId = 101, FirstName = "Krishna", Lastname = "Shahhh", EmailAddress = "kdshah929@gmail.com", Password = "12345678", Role = "Admin" };

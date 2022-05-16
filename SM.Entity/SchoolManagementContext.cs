@@ -19,7 +19,6 @@ namespace SM.Web.Data
             : base(options)
         {
         }
-
         public virtual DbSet<User> Users { get; set; }
         public virtual DbSet<UserRole> UserRoles { get; set; }
          

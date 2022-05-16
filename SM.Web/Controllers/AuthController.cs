@@ -26,7 +26,7 @@ namespace SM.Web.Controllers
 {
     public class AuthController : Controller
     {
-
+        
         private readonly SchoolManagementContext _schoolManagementContext;
         [Obsolete]
         private readonly IHostingEnvironment _hostingEnvironment;
@@ -55,7 +55,7 @@ namespace SM.Web.Controllers
             try
             {
                 //if user is already logged in then they can't go back to login page
-                if (Convert.ToBoolean(HttpContext.Session.GetString("Userlogeddin")))
+                if (User.Identity.IsAuthenticated == true)
                 {
                     return RedirectToAction("Index", "Users");
                 }
@@ -94,7 +94,6 @@ namespace SM.Web.Controllers
                     //var loggedinUser = _schoolManagementContext.Users.FirstOrDefault(x => x.EmailAddress == objloginModel.EmailAddress && x.Password == userPassword);
 
                     //Here can be implemented checking logic from the database
-
                     if (loggedinUser != null)
                     {
                         var Name = loggedinUser.FirstName + " " + loggedinUser.Lastname;
@@ -112,18 +111,6 @@ namespace SM.Web.Controllers
 
                         var userPrincipal = new ClaimsPrincipal(new[] { userIdentity });
                         HttpContext.SignInAsync(userPrincipal);
-
-                        //ClaimsIdentity identity = null;
-                        ////Create the identity for the user
-                        //identity = new ClaimsIdentity(new[]
-                        //{
-                        //    new Claim(ClaimTypes.Name, objloginModel.EmailAddress),
-                        //    new Claim(ClaimTypes.Role, "Admin")
-                        //},
-                        //    CookieAuthenticationDefaults.AuthenticationScheme);
-
-                        //var principal = new ClaimsPrincipal(identity);
-                        //var login = HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
                         return RedirectToAction("Dashboard", "Home");
                     }
@@ -152,7 +139,7 @@ namespace SM.Web.Controllers
             try
             {
                 //if user is already logged in then they can't go back to register page
-                if (Convert.ToBoolean(HttpContext.Session.GetString("Userlogeddin")))
+                if (User.Identity.IsAuthenticated == true)
                 {
                     return RedirectToAction("Index", "Users");
                 }
@@ -196,9 +183,10 @@ namespace SM.Web.Controllers
 
                         //encrypt the userid for link in url.
                         var userId = EncryptionDecryption.Encrypt(objUser.UserId.ToString());
+
                         var userDetails = _schoolManagementContext.Users.Where(x => x.EmailAddress == objUser.EmailAddress).ToList();
                         //link generation with userid.
-                        var link = "http://localhost:9334/Auth/SetPassword?link=" + userId;
+                        var linkPath = "http://localhost:9334/Auth/SetPassword?link=" + userId;
 
                         string webRootPath = _hostingEnvironment.WebRootPath + "/MalTemplates/SetPasswordTemplate.html";
                         StreamReader reader = new StreamReader(webRootPath);
@@ -210,7 +198,7 @@ namespace SM.Web.Controllers
                         myString = myString.Replace("@@Name@@", objUser.FirstName);
                         myString = myString.Replace("@@FullName@@", objUser.FirstName + " " + objUser.Lastname);
                         myString = myString.Replace("@@Email@@", objUser.EmailAddress);
-                        myString = myString.Replace("@@Link@@", link);
+                        myString = myString.Replace("@@Link@@", linkPath);
                         var body = myString.ToString();
 
                         SendEmail(objUser.EmailAddress, body, subject);
@@ -228,6 +216,71 @@ namespace SM.Web.Controllers
                 return View("Error");
             }
             return View();
+        }
+        #endregion
+
+        /// <summary>
+        /// Open forgot password model for sendlink on entered e=mail
+        /// </summary>
+        #region GetForgotPasswordModel
+        [AllowAnonymous]
+        [HttpGet]
+        public IActionResult ForgotPasswordModel()
+        {
+            try
+            {
+                return View();
+            }
+            catch (Exception)
+            {
+                return View("Error");
+            }
+        }
+        #endregion
+
+        /// <summary>
+        /// Link method of sending mail for reset password. 
+        /// </summary>
+        #region Sendlink
+        [HttpPost]
+        public IActionResult Sendlink(User objUser)
+        {
+            var user = _schoolManagementContext.Users.Where(x => x.EmailAddress == objUser.EmailAddress && x.IsActive == true).ToList();
+            ModelState.Clear();
+            //forgot password code
+            String ResetCode = Guid.NewGuid().ToString();
+
+            var uriBuilder = new UriBuilder
+            {
+                Scheme = Request.Scheme,
+                Host = Request.Host.Host,
+                Port = Request.Host.Port ?? -1, //bydefault -1
+                Path = $"/Auth/ForgotPassword/{ResetCode}"
+            };
+            var link = uriBuilder.Uri.AbsoluteUri;
+
+            var getUser = (from s in _schoolManagementContext.Users where s.EmailAddress == objUser.EmailAddress select s).FirstOrDefault();
+            if (getUser != null)
+            {
+                getUser.ResetPasswordCode = ResetCode;
+                _schoolManagementContext.SaveChanges();
+
+                var subject = "Password Reset Request";
+                var body = "Hi " + getUser.FirstName + ", <br/> You recently requested to reset the password for your account. Click the link below to reset ." +
+                 "<br/> <br/><a href='" + link + "'>" + link + "</a> <br/> <br/>" +
+                "If you did not request for reset password please ignore this mail.";
+
+                SendEmail(getUser.EmailAddress, body, subject);
+
+                TempData["linkSendMsg"] = CommonValidations.LinkSendMsg;
+                return RedirectToAction("Login", "Auth");
+            }
+            else
+            {
+                TempData["WrongMailMsg"] = CommonValidations.WrongMailMsg;
+                return RedirectToAction("ForgotPasswordModel", "Auth");
+            }
+            //return RedirectToAction("Login", "Auth");
         }
         #endregion
 
@@ -265,20 +318,64 @@ namespace SM.Web.Controllers
         #endregion
 
         /// <summary>
-        /// When user logout from their account.
-        /// Set session "Userlogeddin" as false when user logged out from their session.
-        /// After logged out session will be clear and user will be redirect to Main Dashboard PAge.
+        /// Reset Password get method.
         /// </summary>
-        [Authorize]
-        #region LogOut
-        public IActionResult LogOut()
+        #region ForgotPassword
+        public IActionResult ForgotPassword(String id)
         {
             try
             {
-                HttpContext.Session.SetString("Userlogeddin", "false");
-                var Login = HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                if (string.IsNullOrWhiteSpace(id))
+                {
+                    return NotFound();
+                }
+                var user = _schoolManagementContext.Users.Where(f => f.ResetPasswordCode == id).FirstOrDefault();
+                if (user != null)
+                {
+                    ForgotPassword modal = new ForgotPassword();
+                    modal.ResetCode = id;
+                    return View(modal);
+                }
+                else
+                {
+                    return NotFound();
+                }
+            }
+            catch (Exception)
+            {
+                return View("Error");
+            }
+        }
+        #endregion
 
-                return RedirectToAction("Login", "Auth");
+        /// <summary>
+        /// Reset Password post method.
+        /// </summary>
+        #region ForgotPassword(POST)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ForgotPassword(ForgotPassword model)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    var user = _schoolManagementContext.Users.Where(f => f.ResetPasswordCode == model.ResetCode).FirstOrDefault();
+                    if (user != null)
+                    {
+                        //you can encrypt password here, we are not doing it
+                        user.Password = EncryptionDecryption.Encrypt(model.Password.ToString());
+                        //to avoid validation issues, disable it and make resetpasswordcode empty string now
+                        //user.ResetPasswordCode = "";
+                        _schoolManagementContext.SaveChanges();
+                        TempData["successMsg"] = CommonValidations.PasswordUpdateMsg;
+                    }
+                }
+                else
+                {
+                    TempData["failureMsg"] = CommonValidations.PasswordNotUpdateMsg;
+                }
+                return View(model);
             }
             catch (Exception)
             {
@@ -296,7 +393,6 @@ namespace SM.Web.Controllers
         {
             try
             {
-                //int id = Convert.ToInt32(HttpContext.Session.SetString("links", link));
                 link = EncryptionDecryption.Decrypt(link.ToString());
                 int id = Convert.ToInt32(link);
                 HttpContext.Session.SetInt32("links", id);
@@ -355,6 +451,39 @@ namespace SM.Web.Controllers
                 return View("Error");
             }
             return View();
+        }
+        #endregion
+       
+        /// <summary>
+        /// Access denined method.
+        /// if user is unauthenticate then will reirect to this method.
+        /// </summary>
+        #region Accessdenined
+        public ActionResult Error()
+        {
+            return View();
+        }
+        #endregion
+
+        /// <summary>
+        /// When user logout from their account.
+        /// Set session "Userlogeddin" as false when user logged out from their session.
+        /// After logged out session will be clear and user will be redirect to Login.
+        /// </summary>
+        #region LogOut
+        [Authorize]
+        public async Task<IActionResult> LogOut()
+        {
+            try
+            {
+                HttpContext.Session.SetString("Userlogeddin", "false");
+                await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                return RedirectToAction("Login", "Auth");
+            }
+            catch (Exception ex)
+            {
+                return View(ex);
+            }
         }
         #endregion
     }

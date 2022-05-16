@@ -18,7 +18,7 @@ namespace SM.Common
         /// Defines the RecordExistsMsg.
         /// </summary>
         public const string RecordExistsMsg = "The record already exists.";
-        
+
         /// <summary>
         /// Defines the RecordExistsMsg.
         /// </summary>
@@ -68,6 +68,27 @@ namespace SM.Common
         /// The string max length...
         /// </summary>
         public const string StringLength = "The {0} must be less than {10} characters.";
+
+        /// <summary>
+        /// The update password message...
+        /// </summary>
+        public const string PasswordUpdateMsg = "New password updated successfully";
+
+         /// <summary>
+        /// The not update password message...
+        /// </summary>
+        public const string PasswordNotUpdateMsg = "Something is invalid";
+
+        /// <summary>
+        /// The sending link for reset password message...
+        /// </summary>
+        public const string LinkSendMsg = "Reset password link has been sent to your email id";
+        
+        /// <summary>
+        /// The sending link for reset password message...
+        /// </summary>
+        public const string WrongMailMsg = "You entered wrong e-mail address";
+
     }
 }
 

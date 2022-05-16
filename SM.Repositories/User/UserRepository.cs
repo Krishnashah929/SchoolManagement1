@@ -36,8 +36,8 @@ namespace SM.Repositories.Repository
                 getUser = _schoolManagementContext.Users.FirstOrDefault(x => x.EmailAddress == user.EmailAddress);
                 if (getUser != null)
                 {
+                    //have to remove this.
                     getUser.EmailAddress = user.EmailAddress;
-                    getUser.Password = user.Password;
 
                     _schoolManagementContext.SaveChanges();
                 }
