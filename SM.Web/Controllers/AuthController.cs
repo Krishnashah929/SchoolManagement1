@@ -267,7 +267,7 @@ namespace SM.Web.Controllers
                 SendEmail(getUser.EmailAddress, body, subject);
 
                 TempData["linkSendMsg"] = CommonValidations.LinkSendMsg;
-                return RedirectToAction("Login", "Auth");
+                return RedirectToAction("ForgotPasswordModel", "Auth");
             }
             else
             {
