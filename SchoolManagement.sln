@@ -15,7 +15,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SM.Models", "SM.Models\SM.M
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SM.Repositories", "SM.Repositories\SM.Repositories.csproj", "{8F819C65-1E06-4574-9490-C72FA7292758}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomHandlers", "CustomHandlers\CustomHandlers.csproj", "{63952FAE-87E8-4797-99FA-13D1F3B48C17}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomAuthorizationHandlers", "CustomHandlers\CustomAuthorizationHandlers.csproj", "{63952FAE-87E8-4797-99FA-13D1F3B48C17}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

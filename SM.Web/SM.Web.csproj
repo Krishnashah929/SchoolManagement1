@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CustomHandlers\CustomHandlers.csproj" />
+    <ProjectReference Include="..\CustomHandlers\CustomAuthorizationHandlers.csproj" />
     <ProjectReference Include="..\SM.Common\SM.Common.csproj" />
     <ProjectReference Include="..\SM.Entity\SM.Entity.csproj" />
     <ProjectReference Include="..\SM.Models\SM.Models.csproj" />
