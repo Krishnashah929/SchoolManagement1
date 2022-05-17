@@ -20,8 +20,6 @@ namespace SM.Web.Controllers
         /// <summary>
         /// Constructor of an object 
         /// </summary>
-        /// <param name="schoolManagementContext"></param>
-        /// <param name="userRepository"></param>
         public UsersController(SchoolManagementContext schoolManagementContext, IUserRepository userRepository)
         {
             _schoolManagementContext = schoolManagementContext;

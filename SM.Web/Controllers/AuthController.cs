@@ -4,15 +4,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Memory;
 using SM.Common;
 using SM.Entity;
 using SM.Models;
 using SM.Repositories.IRepository;
 using SM.Web.Data;
-using SM.Web.Models;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -21,12 +18,10 @@ using System.Net.Mail;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
-
 namespace SM.Web.Controllers
 {
     public class AuthController : Controller
     {
-        
         private readonly SchoolManagementContext _schoolManagementContext;
         [Obsolete]
         private readonly IHostingEnvironment _hostingEnvironment;
@@ -91,8 +86,7 @@ namespace SM.Web.Controllers
 
                     //Check the user email and password
                     var loggedinUser = _userRepository.GetById(getUser);
-                    //var loggedinUser = _schoolManagementContext.Users.FirstOrDefault(x => x.EmailAddress == objloginModel.EmailAddress && x.Password == userPassword);
-
+                    
                     //Here can be implemented checking logic from the database
                     if (loggedinUser != null)
                     {

@@ -1,10 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using SM.Entity;
-using SM.Repositories.IRepository;
-using SM.Web.Data;
 using SM.Web.Models;
 using System;
 using System.Diagnostics;
