@@ -5,10 +5,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Authorization" Version="6.0.4" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\SM.Entity\SM.Entity.csproj" />
     <ProjectReference Include="..\SM.Repositories\SM.Repositories.Core.csproj" />
   </ItemGroup>

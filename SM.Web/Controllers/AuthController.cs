@@ -8,6 +8,7 @@ using SM.Common;
 using SM.Entity;
 using SM.Models;
 using SM.Repositories.IRepository;
+using SM.Services.Users;
 using SM.Web.Data;
 using System;
 using System.Collections.Generic;
@@ -25,18 +26,20 @@ namespace SM.Web.Controllers
         private readonly SchoolManagementContext _schoolManagementContext;
         [Obsolete]
         private readonly IHostingEnvironment _hostingEnvironment;
-        private IUserRepository _userRepository;
+        private IUserServices _userService;
 
         private bool errorflag;
 
         public object HttpCacheability { get; private set; }
 
         [Obsolete]
-        public AuthController(SchoolManagementContext schoolManagementContext, IHostingEnvironment hostingEnvironment, IUserRepository userRepository)
+        public AuthController(SchoolManagementContext schoolManagementContext, IHostingEnvironment hostingEnvironment, 
+            IUserRepository userRepository, IUserServices userService)
         {
             _schoolManagementContext = schoolManagementContext;
             _hostingEnvironment = hostingEnvironment;
-            _userRepository = userRepository;
+            _userService = userService;
+            //_userRepository = userRepository;
         }
 
         /// <summary>
@@ -85,7 +88,7 @@ namespace SM.Web.Controllers
                     var userPassword = EncryptionDecryption.Encrypt(objloginModel.Password.ToString());
 
                     //Check the user email and password
-                    var loggedinUser = _userRepository.GetById(getUser);
+                    var loggedinUser = _userService.GetByEmail(getUser);
                     
                     //Here can be implemented checking logic from the database
                     if (loggedinUser != null)
@@ -156,7 +159,7 @@ namespace SM.Web.Controllers
         #region Register(POST)
         [HttpPost]
         [Obsolete]
-        public IActionResult Register(User objUser)
+        public IActionResult Register(User objUser, User user)
         {
             try
             {
@@ -165,20 +168,13 @@ namespace SM.Web.Controllers
                 ModelState.Remove("RetypePassword");
                 if (ModelState.IsValid)
                 {
-                    if (_schoolManagementContext.Users.Where(x => x.EmailAddress == objUser.EmailAddress).Count() == 0)
-                    {
-                        objUser.Password = string.Empty;
-                        objUser.CreatedDate = DateTime.Now;
-                        objUser.IsActive = false;
-                        objUser.Role = "Admin";
-
-                        _schoolManagementContext.Users.Add(objUser);
-                        _schoolManagementContext.SaveChanges();
-
+                    //calling from services
+                    var registerUsers = _userService.Register(user);
+                    if (registerUsers != null)
+                    { 
                         //encrypt the userid for link in url.
-                        var userId = EncryptionDecryption.Encrypt(objUser.UserId.ToString());
-
-                        var userDetails = _schoolManagementContext.Users.Where(x => x.EmailAddress == objUser.EmailAddress).ToList();
+                        var userId = EncryptionDecryption.Encrypt(user.UserId.ToString());
+ 
                         //link generation with userid.
                         var linkPath = "http://localhost:9334/Auth/SetPassword?link=" + userId;
 
@@ -274,7 +270,6 @@ namespace SM.Web.Controllers
                 TempData["WrongMailMsg"] = CommonValidations.WrongMailMsg;
                 return RedirectToAction("ForgotPasswordModel", "Auth");
             }
-            //return RedirectToAction("Login", "Auth");
         }
         #endregion
 
@@ -323,7 +318,7 @@ namespace SM.Web.Controllers
                 {
                     return NotFound();
                 }
-                var user = _schoolManagementContext.Users.Where(f => f.ResetPasswordCode == id).FirstOrDefault();
+                var user = _userService.GetResetPassword(id);
                 if (user != null)
                 {
                     ForgotPassword modal = new ForgotPassword();
@@ -354,14 +349,9 @@ namespace SM.Web.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    var user = _schoolManagementContext.Users.Where(f => f.ResetPasswordCode == model.ResetCode).FirstOrDefault();
+                    var user = _userService.ResetPassword(model);
                     if (user != null)
                     {
-                        //you can encrypt password here, we are not doing it
-                        user.Password = EncryptionDecryption.Encrypt(model.Password.ToString());
-                        //to avoid validation issues, disable it and make resetpasswordcode empty string now
-                        //user.ResetPasswordCode = "";
-                        _schoolManagementContext.SaveChanges();
                         TempData["successMsg"] = CommonValidations.PasswordUpdateMsg;
                     }
                 }
@@ -383,14 +373,15 @@ namespace SM.Web.Controllers
         /// </summary>
         #region SetPasswordGet
         [HttpGet]
-        public IActionResult SetPassword(string link)
+        public IActionResult SetPassword(string link, User user)
         {
             try
             {
                 link = EncryptionDecryption.Decrypt(link.ToString());
                 int id = Convert.ToInt32(link);
                 HttpContext.Session.SetInt32("links", id);
-                var userDetails = _schoolManagementContext.Users.Where(x => x.UserId == id).FirstOrDefault();
+                user.UserId = id;
+                var userDetails = _userService.GetUserPassword(user);
                 return View(userDetails);
             }
             catch (Exception)
@@ -405,7 +396,7 @@ namespace SM.Web.Controllers
         /// </summary>
         #region SetPasswordPost
         [HttpPost]
-        public IActionResult SetPassword(User objUser)
+        public IActionResult SetPassword(User objUser, User user)
         {
             try
             {
@@ -416,21 +407,10 @@ namespace SM.Web.Controllers
                 if (ModelState.IsValid)
                 {
                     int id = (int)HttpContext.Session.GetInt32("links");
-
-                    if (id != null)
+                    user.UserId = id;
+                    var setUserPassword = _userService.SetUserPassword(user);
+                    if (setUserPassword != null)
                     {
-                        User updateDetails = _schoolManagementContext.Users.FirstOrDefault(x => x.UserId == id);
-
-                        //Passing the Password to Encrypt method and the method will return encrypted string and 
-                        // stored in Password variable.  
-
-                        updateDetails.Password = EncryptionDecryption.Encrypt(objUser.Password.ToString());
-                        updateDetails.IsActive = true;
-                        updateDetails.ModifiedDate = DateTime.Now;
-
-                        _schoolManagementContext.Users.Update(updateDetails);
-                        _schoolManagementContext.SaveChanges();
-
                         return RedirectToAction("Login", "Auth");
                     }
                     else

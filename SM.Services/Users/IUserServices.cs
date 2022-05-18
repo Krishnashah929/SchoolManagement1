@@ -2,9 +2,9 @@
 using SM.Models;
 using System.Collections.Generic;
 
-namespace SM.Repositories.IRepository
+namespace SM.Services.Users
 {
-    public interface IUserRepository
+    public interface IUserServices
     {
         IEnumerable<User> GetAll();
         User GetById(User user);
@@ -16,11 +16,5 @@ namespace SM.Repositories.IRepository
         User SetUserPassword(User user);
         User GetResetPassword(string id);
         User ResetPassword(ForgotPassword model);
-
-
-
-        //void Insert(User user);
-        //void Update(User user);
-        //void Delete(User user);
     }
 }

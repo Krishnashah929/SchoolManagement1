@@ -13,6 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using SM.Repositories.IRepository;
 using SM.Repositories.Repository;
+using SM.Services.Users;
 using SM.Web.Data;
 using System;
 using System.Collections.Generic;
@@ -38,6 +39,7 @@ namespace SM.Web
             services.AddTransient(typeof(IBaseRepository<>), typeof(BaseRepository<>));
             services.AddTransient<IUserRepository, UserRepository>();
             services.AddTransient<IUnitOfWork, UnitOfWork>();
+            services.AddScoped<IUserServices, UserServices>();
 
             //For authentication purpose.
             //services.Configure<CookiePolicyOptions>(options =>
