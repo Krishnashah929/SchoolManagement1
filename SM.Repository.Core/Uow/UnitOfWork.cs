@@ -39,7 +39,6 @@ namespace SM.Repository.Core.Uow
 
             return (IGenericRepository<TEntity>)repos[type];
         }
-
         /// <returns>The number of objects in an Added, Modified, or Deleted state</returns>
         public int Commit()
         {
@@ -47,10 +46,23 @@ namespace SM.Repository.Core.Uow
         }
         public User GetByEmail(User user)
         {
-             try
+            try
             {
                 User getUser = new User();
                 getUser = _schoolManagementContext.Users.FirstOrDefault(x => x.EmailAddress == user.EmailAddress);
+                return getUser;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+        public User GetUser(User user)
+        {
+            try
+            {
+                User getUser = new User();
+                getUser = _schoolManagementContext.Users.FirstOrDefault(x => x.EmailAddress == user.EmailAddress && x.Password == user.Password);
                 return getUser;
             }
             catch (Exception ex)
@@ -152,6 +164,20 @@ namespace SM.Repository.Core.Uow
                 _schoolManagementContext.SaveChanges();
 
                 return UpdateResetPassword;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+        public User ResetCode(string ResetCode)
+        {
+            try
+            {
+                User user = new User();
+                user.ResetPasswordCode = ResetCode;
+                _schoolManagementContext.SaveChanges();
+                return user;
             }
             catch (Exception ex)
             {

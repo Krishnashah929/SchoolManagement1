@@ -25,7 +25,6 @@ namespace SM.Web.Controllers
     /// </summary>
     public class AuthController : Controller
     {
-        private readonly SchoolManagementContext _schoolManagementContext;
         [Obsolete]
         private readonly IHostingEnvironment _hostingEnvironment;
         private IUserServices _userService;
@@ -35,9 +34,8 @@ namespace SM.Web.Controllers
         public object HttpCacheability { get; private set; }
 
         [Obsolete]
-        public AuthController(SchoolManagementContext schoolManagementContext, IHostingEnvironment hostingEnvironment,  IUserServices userService)
+        public AuthController(IHostingEnvironment hostingEnvironment,  IUserServices userService)
         {
-            _schoolManagementContext = schoolManagementContext;
             _hostingEnvironment = hostingEnvironment;
             _userService = userService;
             //_userRepository = userRepository;
@@ -248,11 +246,9 @@ namespace SM.Web.Controllers
                 Path = $"/Auth/ForgotPassword/{ResetCode}"
             };
             var link = uriBuilder.Uri.AbsoluteUri;
-            if (user != null)
+            var users = _userService.ResetCode(ResetCode);
+            if (users != null)
             {
-                user.ResetPasswordCode = ResetCode;
-                _schoolManagementContext.SaveChanges();
-
                 var subject = "Password Reset Request";
                 var body = "Hi " + getUser.FirstName + ", <br/> You recently requested to reset the password for your account. Click the link below to reset ." +
                  "<br/> <br/><a href='" + link + "'>" + link + "</a> <br/> <br/>" +

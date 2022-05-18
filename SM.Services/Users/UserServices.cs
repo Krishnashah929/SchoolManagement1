@@ -25,6 +25,10 @@ namespace SM.Services.Users
         {
             return _unitOfWork.GetByEmail(user);
         }
+       public User GetUser(User user)
+        {
+            return _unitOfWork.GetUser(user);
+        }
         public User Register(User user)
         {
             return _unitOfWork.Register(user);
@@ -45,6 +49,11 @@ namespace SM.Services.Users
         {
             return _unitOfWork.ResetPassword(model);
         }
+        public User ResetCode(string ResetCode)
+        {
+            return _unitOfWork.ResetCode(ResetCode);
+        }
+
         //public User GetByEmail(User user)
         //{
         //    var userRepository = _unitOfWork.GetRepository<User>();
