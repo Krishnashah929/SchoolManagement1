@@ -5,6 +5,9 @@ using SM.Web.Models;
 using System;
 using System.Diagnostics;
 
+/// <summary>
+/// Home controller for users.
+/// </summary>
 namespace SM.Web.Controllers
 {
     /// <summary>

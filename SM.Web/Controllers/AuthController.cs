@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Mvc;
 using SM.Common;
 using SM.Entity;
 using SM.Models;
-using SM.Repositories.IRepository;
 using SM.Services.Users;
 using SM.Web.Data;
 using System;
@@ -21,6 +20,9 @@ using System.Threading.Tasks;
 
 namespace SM.Web.Controllers
 {
+    /// <summary>
+    /// Controller for all login and registration activites.
+    /// </summary>
     public class AuthController : Controller
     {
         private readonly SchoolManagementContext _schoolManagementContext;
@@ -33,8 +35,7 @@ namespace SM.Web.Controllers
         public object HttpCacheability { get; private set; }
 
         [Obsolete]
-        public AuthController(SchoolManagementContext schoolManagementContext, IHostingEnvironment hostingEnvironment, 
-            IUserRepository userRepository, IUserServices userService)
+        public AuthController(SchoolManagementContext schoolManagementContext, IHostingEnvironment hostingEnvironment,  IUserServices userService)
         {
             _schoolManagementContext = schoolManagementContext;
             _hostingEnvironment = hostingEnvironment;
@@ -101,7 +102,6 @@ namespace SM.Web.Controllers
                         {
                              new Claim("UserEmail", objloginModel.EmailAddress),
                              new Claim(ClaimTypes.Email, objloginModel.EmailAddress),
-                             //new Claim(ClaimTypes.Role, objloginModel.Role.ToString())
                         };
 
                         var userIdentity = new ClaimsIdentity(userClaims, "User Identity");
@@ -171,10 +171,10 @@ namespace SM.Web.Controllers
                     //calling from services
                     var registerUsers = _userService.Register(user);
                     if (registerUsers != null)
-                    { 
+                    {
                         //encrypt the userid for link in url.
                         var userId = EncryptionDecryption.Encrypt(user.UserId.ToString());
- 
+
                         //link generation with userid.
                         var linkPath = "http://localhost:9334/Auth/SetPassword?link=" + userId;
 
@@ -233,9 +233,9 @@ namespace SM.Web.Controllers
         /// </summary>
         #region Sendlink
         [HttpPost]
-        public IActionResult Sendlink(User objUser)
+        public IActionResult Sendlink(User getUser)
         {
-            var user = _schoolManagementContext.Users.Where(x => x.EmailAddress == objUser.EmailAddress && x.IsActive == true).ToList();
+            var user = _userService.GetByEmail(getUser);
             ModelState.Clear();
             //forgot password code
             String ResetCode = Guid.NewGuid().ToString();
@@ -248,19 +248,16 @@ namespace SM.Web.Controllers
                 Path = $"/Auth/ForgotPassword/{ResetCode}"
             };
             var link = uriBuilder.Uri.AbsoluteUri;
-
-            var getUser = (from s in _schoolManagementContext.Users where s.EmailAddress == objUser.EmailAddress select s).FirstOrDefault();
-            if (getUser != null)
+            if (user != null)
             {
-                getUser.ResetPasswordCode = ResetCode;
+                user.ResetPasswordCode = ResetCode;
                 _schoolManagementContext.SaveChanges();
 
                 var subject = "Password Reset Request";
                 var body = "Hi " + getUser.FirstName + ", <br/> You recently requested to reset the password for your account. Click the link below to reset ." +
                  "<br/> <br/><a href='" + link + "'>" + link + "</a> <br/> <br/>" +
                 "If you did not request for reset password please ignore this mail.";
-
-                SendEmail(getUser.EmailAddress, body, subject);
+                SendEmail(user.EmailAddress, body, subject);
 
                 TempData["linkSendMsg"] = CommonValidations.LinkSendMsg;
                 return RedirectToAction("ForgotPasswordModel", "Auth");
@@ -427,7 +424,7 @@ namespace SM.Web.Controllers
             return View();
         }
         #endregion
-       
+
         /// <summary>
         /// Access denined method.
         /// if user is unauthenticate then will reirect to this method.

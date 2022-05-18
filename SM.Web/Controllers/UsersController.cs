@@ -1,11 +1,14 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SM.Entity;
-using SM.Repositories.IRepository;
+using SM.Services.Users;
 using SM.Web.Data;
 using System;
 using System.Linq;
 
+/// <summary>
+///Controller for all User related activites
+/// </summary>
 namespace SM.Web.Controllers
 {
     /// <summary>
@@ -14,16 +17,15 @@ namespace SM.Web.Controllers
     [ResponseCache(CacheProfileName = "Default0")]
     public class UsersController : Controller
     {
-        private readonly SchoolManagementContext _schoolManagementContext;
-        private IUserRepository _userRepository;
+        private readonly IUserServices _userServices;
 
         /// <summary>
         /// Constructor of an object 
         /// </summary>
-        public UsersController(SchoolManagementContext schoolManagementContext, IUserRepository userRepository)
+        public UsersController( IUserServices userServices)
         {
-            _schoolManagementContext = schoolManagementContext;
-            _userRepository = userRepository;
+            
+            _userServices = userServices;
         }
 
         /// <summary>
@@ -123,93 +125,93 @@ namespace SM.Web.Controllers
         /// <summary>
         /// UpdateUserDetails is modal for get the details of particular user.
         /// </summary>
-        #region UpdateUserDetailsGet
-        [HttpGet]
-        public IActionResult UpdateUserDetailsGet(int id)
-        {
-            var userDetails = _schoolManagementContext.Users.Where(x => x.UserId == id).FirstOrDefault();
-            return PartialView("_UserDetailsPartial", userDetails);
-        }
-        #endregion
+        //#region UpdateUserDetailsGet
+        //[HttpGet]
+        //public IActionResult UpdateUserDetailsGet(int id)
+        //{
+        //    var userDetails = _schoolManagementContext.Users.Where(x => x.UserId == id).FirstOrDefault();
+        //    return PartialView("_UserDetailsPartial", userDetails);
+        //}
+        //#endregion
 
         /// <summary>
         /// UpdateUserDetails is modal for updating the details of particular user.
         /// update details of users with user repository.
         /// </summary>
-        #region UpdateUserDetailsPost 
-        [HttpPost]
-        public IActionResult UpdateUserDetailsPost(User updateUser)
-        {
-            try
-            {
-                ModelState.Remove("Password");
-                ModelState.Remove("RetypePassword");
-                if (ModelState.IsValid)
-                {
-                    if (updateUser != null)
-                    {
-                        var User = _userRepository.Update(updateUser);
-                        if (User != null)
-                        {
-                            return Ok(Json("true"));
-                        }
-                        else
-                        {
-                            return Ok(Json("false"));
-                        }
-                    }
-                }
-                return NoContent();
-            }
-            catch (Exception)
-            {
-                return View("Error");
-            }
-        }
-        #endregion
+        //#region UpdateUserDetailsPost 
+        //[HttpPost]
+        //public IActionResult UpdateUserDetailsPost(User updateUser)
+        //{
+        //    try
+        //    {
+        //        ModelState.Remove("Password");
+        //        ModelState.Remove("RetypePassword");
+        //        if (ModelState.IsValid)
+        //        {
+        //            if (updateUser != null)
+        //            {
+        //                var User = _userServices.Update(updateUser);
+        //                if (User != null)
+        //                {
+        //                    return Ok(Json("true"));
+        //                }
+        //                else
+        //                {
+        //                    return Ok(Json("false"));
+        //                }
+        //            }
+        //        }
+        //        return NoContent();
+        //    }
+        //    catch (Exception)
+        //    {
+        //        return View("Error");
+        //    }
+        //}
+        //#endregion
 
         /// <summary>
         /// DeleteUserDetails is modal for get the details of particular user for delete them.
         /// </summary>
-        #region DeleteUserDetailsGet
-        [HttpGet]
-        public IActionResult DeleteUserDetailsGet(int id)
-        {
-            var deleteDetails = _schoolManagementContext.Users.Where(x => x.UserId == id).FirstOrDefault();
-            return PartialView("_UserDeletePartial", deleteDetails);
-        }
-        #endregion
+        //#region DeleteUserDetailsGet
+        //[HttpGet]
+        //public IActionResult DeleteUserDetailsGet(int id)
+        //{
+        //    var deleteDetails = _schoolManagementContext.Users.Where(x => x.UserId == id).FirstOrDefault();
+        //    return PartialView("_UserDeletePartial", deleteDetails);
+        //}
+        //#endregion
 
         /// <summary>
         /// DeleteUserDetailsPost is modal for deleting the particular user.
         /// Delete users with user repository.
         /// </summary>
-        #region DeleteUserDetailsPost
-        [HttpPost]
-        public IActionResult DeleteUserDetailsPost(User deleteUser)
-        {
-            try
-            {
-                if (deleteUser != null)
-                {
-                    var User = _userRepository.Delete(deleteUser);
-                    if (User != null)
-                    {
-                        return Ok(Json("true"));
-                    }
-                    else
-                    {
-                        return Ok(Json("false"));
-                    }
-                }
-                return NoContent();
-            }
-            catch (Exception)
-            {
-                return View("Error");
-            }
-        }
-        #endregion
+        //#region DeleteUserDetailsPost
+        //[HttpPost]
+        //public IActionResult DeleteUserDetailsPost(User deleteUser)
+        //{
+        //    try
+        //    {
+        //        if (deleteUser != null)
+        //        {
+        //            var User = _userRepository.Delete(deleteUser);
+        //            if (User != null)
+        //            {
+        //                return Ok(Json("true"));
+        //            }
+        //            else
+        //            {
+        //                return Ok(Json("false"));
+        //            }
+        //        }
+        //        return NoContent();
+        //    }
+        //    catch (Exception)
+        //    {
+        //        return View("Error");
+        //    }
+        //}
+        //#endregion
     }
 }
 

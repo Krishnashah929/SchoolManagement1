@@ -1,65 +1,57 @@
 ﻿using SM.Entity;
 using SM.Models;
-using SM.Repositories.IRepository;
+using SM.Repository.Core.Uow;
 using System;
 using System.Collections.Generic;
 
 namespace SM.Services.Users
 {
+    /// <summary>
+    /// User services for crud operations
+    /// </summary>
     public class UserServices : IUserServices
     {
-        private readonly IUserRepository _userRepository;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public UserServices(IUserRepository userRepository)
+        public UserServices(IUnitOfWork unitOfWork)
         {
-            _userRepository = userRepository;
+            _unitOfWork = unitOfWork;
         }
-
-        public User Delete(User user)
-        {
-            throw new NotImplementedException();
-        }
-
         public IEnumerable<User> GetAll()
         {
-            return _userRepository.GetAll();
+            return _unitOfWork.GetAll();
         }
-
         public User GetByEmail(User user)
         {
-            return _userRepository.GetByEmail(user);
+            return _unitOfWork.GetByEmail(user);
         }
-
-        public User GetById(User user)
-        {
-            throw new NotImplementedException();
-        }
-
         public User Register(User user)
         {
-            return _userRepository.Register(user);
-        }
-
-        public User Update(User user)
-        {
-            throw new NotImplementedException();
+            return _unitOfWork.Register(user);
         }
         public User GetUserPassword(User user)
         {
-            return _userRepository.GetUserPassword(user);
+            return _unitOfWork.GetUserPassword(user);
         }
-         public User SetUserPassword(User user)
+        public User SetUserPassword(User user)
         {
-            return _userRepository.SetUserPassword(user);
+            return _unitOfWork.SetUserPassword(user);
         }
-         public User GetResetPassword(string id)
+        public User GetResetPassword(string id)
         {
-            return _userRepository.GetResetPassword(id);
+            return _unitOfWork.GetResetPassword(id);
         }
-         public User ResetPassword(ForgotPassword model)
+        public User ResetPassword(ForgotPassword model)
         {
-            return _userRepository.ResetPassword(model);
+            return _unitOfWork.ResetPassword(model);
         }
-
+        //public User GetByEmail(User user)
+        //{
+        //    var userRepository = _unitOfWork.GetRepository<User>();
+        //    userRepository.Add(user);
+        //    _unitOfWork.Commit();
+        //    return _unitOfWork.GetByEmail(user);
+        //}
     }
 }
+

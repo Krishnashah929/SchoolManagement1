@@ -1,19 +1,22 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
 using SM.Entity;
-using SM.Repositories.IRepository;
+using SM.Services.Users;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace CustomHandlers.CustomHandler
 {
+    /// <summary>
+    /// Checking that specified user is applicable on given authorization filter or not. 
+    /// </summary>
     public class RolesAuthorizationHandler : AuthorizationHandler<RolesAuthorizationRequirement>, IAuthorizationHandler
     {
-        private IUserRepository _userRepository;
+        private IUserServices _userServices;
 
-        public RolesAuthorizationHandler(IUserRepository userRepository)
+        public RolesAuthorizationHandler(IUserServices userServices)
         {
-            _userRepository = userRepository;
+            _userServices = userServices;
         }
         protected override Task HandleRequirementAsync(AuthorizationHandlerContext context,
                                                        RolesAuthorizationRequirement requirement)
@@ -23,25 +26,19 @@ namespace CustomHandlers.CustomHandler
                 context.Fail();
                 return Task.CompletedTask;
             }
-
             var validRole = false;
             if (requirement.AllowedRoles == null ||
                 requirement.AllowedRoles.Any() == false)
             {
                 validRole = true;
             }
-
             else
             {
                 var claims = context.User.Claims;
                 var userEmail = claims.FirstOrDefault(c => c.Type == "UserEmail").Value;
                 var roles = requirement.AllowedRoles;
-                validRole = _userRepository.GetAll().Where(p => roles.Contains(p.Role) && p.EmailAddress == userEmail).Any();
-                //validRole = new User().GetUsers().Where(p => roles.Contains(p.Role) && p.EmailAddress == userEmail).Any();
-
-                //validRole = new User.Where(p => roles.Contains(p.Role) && p.EmaiAddress == UserEmail).Any();
+                validRole = _userServices.GetAll().Where(p => roles.Contains(p.Role) && p.EmailAddress == userEmail).Any();
             }
-
             if (validRole)
             {
                 context.Succeed(requirement);
@@ -50,10 +47,7 @@ namespace CustomHandlers.CustomHandler
             else
             {
                 return Task.FromResult(0);
-                //return Task.CompletedTask;
-
             }
-            //return Task.CompletedTask;
         }
     }
 }

@@ -2,6 +2,9 @@
 
 namespace SM.Entity.Migrations
 {
+    /// <summary>
+    /// Adding resetpasswordcode coloum in user entity
+    /// </summary>
     public partial class addedResetPasswordCode : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)

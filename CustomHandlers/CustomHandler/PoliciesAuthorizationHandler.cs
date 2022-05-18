@@ -4,6 +4,9 @@ using System.Threading.Tasks;
 
 namespace CustomHandlers.CustomHandler
 {
+    /// <summary>
+    /// usefull for success and failure of completed task based on authorization
+    /// </summary>
     public class PoliciesAuthorizationHandler : AuthorizationHandler<CustomUserRequireClaim>
     {
         protected override Task HandleRequirementAsync(

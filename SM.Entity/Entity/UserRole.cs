@@ -6,6 +6,9 @@ using System.ComponentModel;
 
 namespace SM.Entity
 {
+    /// <summary>
+    /// Main UserRole entity
+    /// </summary>
     public partial class UserRole
     {
         [DisplayName("Compsitekey")]

@@ -8,6 +8,9 @@ using SM.Web.Data;
 
 namespace SM.Entity.Migrations
 {
+    /// <summary>
+    /// snapshot of main school management context.
+    /// </summary>
     [DbContext(typeof(SchoolManagementContext))]
     partial class SchoolManagementContextModelSnapshot : ModelSnapshot
     {

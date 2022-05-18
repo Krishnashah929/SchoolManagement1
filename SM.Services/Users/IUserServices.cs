@@ -4,14 +4,14 @@ using System.Collections.Generic;
 
 namespace SM.Services.Users
 {
+    /// <summary>
+    /// Interface for User services for crud operations.
+    /// </summary>
     public interface IUserServices
     {
         IEnumerable<User> GetAll();
-        User GetById(User user);
         User GetByEmail(User user);
         User Register(User user);
-        User Update(User user);
-        User Delete(User user);
         User GetUserPassword(User user);
         User SetUserPassword(User user);
         User GetResetPassword(string id);

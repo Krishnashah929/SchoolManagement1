@@ -24,7 +24,6 @@
     <ProjectReference Include="..\SM.Common\SM.Common.csproj" />
     <ProjectReference Include="..\SM.Entity\SM.Entity.csproj" />
     <ProjectReference Include="..\SM.Models\SM.Models.csproj" />
-    <ProjectReference Include="..\SM.Repositories\SM.Repositories.Core.csproj" />
     <ProjectReference Include="..\SM.Services\SM.Services.csproj" />
   </ItemGroup>
 

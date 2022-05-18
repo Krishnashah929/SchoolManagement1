@@ -9,6 +9,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SM.Entity
 {
+    /// <summary>
+    /// Main user entity 
+    /// </summary>
     public partial class User
     {
 

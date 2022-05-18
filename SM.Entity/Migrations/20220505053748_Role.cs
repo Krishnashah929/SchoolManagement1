@@ -2,6 +2,9 @@
 
 namespace SM.Entity.Migrations
 {
+    /// <summary>
+    /// Added Role in existing user entity 
+    /// </summary>
     public partial class Role : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)

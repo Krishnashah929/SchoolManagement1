@@ -3,6 +3,9 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace SM.Entity.Migrations
 {
+    /// <summary>
+    /// First Intial Migration file.
+    /// </summary>
     public partial class Intial : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)

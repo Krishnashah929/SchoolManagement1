@@ -2,6 +2,9 @@
 
 namespace SM.Common
 {
+    /// <summary>
+    /// Common validation messages for whole project
+    /// </summary>
     public static class CommonValidations
     {
         /// <summary>
