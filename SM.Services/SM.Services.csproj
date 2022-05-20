@@ -5,6 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
+    <PackageReference Include="NetCore.AutoRegisterDi" Version="2.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\SM.Entity\SM.Entity.csproj" />
     <ProjectReference Include="..\SM.Repository.Core\SM.Repository.Core.csproj" />
   </ItemGroup>

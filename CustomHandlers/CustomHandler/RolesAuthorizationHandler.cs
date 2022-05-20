@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
 using SM.Entity;
-using SM.Services.Users;
+using SM.Services;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -12,9 +12,9 @@ namespace CustomHandlers.CustomHandler
     /// </summary>
     public class RolesAuthorizationHandler : AuthorizationHandler<RolesAuthorizationRequirement>, IAuthorizationHandler
     {
-        private IUserServices _userServices;
+        private IUsersService _userServices;
 
-        public RolesAuthorizationHandler(IUserServices userServices)
+        public RolesAuthorizationHandler(IUsersService userServices)
         {
             _userServices = userServices;
         }
@@ -37,7 +37,7 @@ namespace CustomHandlers.CustomHandler
                 var claims = context.User.Claims;
                 var userEmail = claims.FirstOrDefault(c => c.Type == "UserEmail").Value;
                 var roles = requirement.AllowedRoles;
-                validRole = _userServices.GetAll().Where(p => roles.Contains(p.Role) && p.EmailAddress == userEmail).Any();
+                validRole = _userServices.GetAllUser().Where(p => roles.Contains(p.Role) && p.EmailAddress == userEmail).Any();
             }
             if (validRole)
             {

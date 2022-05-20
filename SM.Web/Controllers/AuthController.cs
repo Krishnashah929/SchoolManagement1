@@ -4,15 +4,14 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Quartz.Util;
 using SM.Common;
 using SM.Entity;
 using SM.Models;
-using SM.Services.Users;
-using SM.Web.Data;
+using SM.Services;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Mail;
 using System.Security.Claims;
@@ -27,14 +26,14 @@ namespace SM.Web.Controllers
     {
         [Obsolete]
         private readonly IHostingEnvironment _hostingEnvironment;
-        private IUserServices _userService;
+        private IUsersService _userService;
 
         private bool errorflag;
 
         public object HttpCacheability { get; private set; }
 
         [Obsolete]
-        public AuthController(IHostingEnvironment hostingEnvironment,  IUserServices userService)
+        public AuthController(IHostingEnvironment hostingEnvironment,  IUsersService userService)
         {
             _hostingEnvironment = hostingEnvironment;
             _userService = userService;
@@ -87,7 +86,7 @@ namespace SM.Web.Controllers
                     var userPassword = EncryptionDecryption.Encrypt(objloginModel.Password.ToString());
 
                     //Check the user email and password
-                    var loggedinUser = _userService.GetByEmail(getUser);
+                    var loggedinUser = _userService.GetByEmail(getUser.EmailAddress);
                     
                     //Here can be implemented checking logic from the database
                     if (loggedinUser != null)
@@ -233,25 +232,30 @@ namespace SM.Web.Controllers
         [HttpPost]
         public IActionResult Sendlink(User getUser)
         {
-            var user = _userService.GetByEmail(getUser);
+            var user = _userService.GetByEmail(getUser.EmailAddress);
             ModelState.Clear();
             //forgot password code
-            String ResetCode = Guid.NewGuid().ToString();
+            //String ResetCode = Guid.NewGuid().ToString();
 
-            var uriBuilder = new UriBuilder
-            {
-                Scheme = Request.Scheme,
-                Host = Request.Host.Host,
-                Port = Request.Host.Port ?? -1, //bydefault -1
-                Path = $"/Auth/ForgotPassword/{ResetCode}"
-            };
-            var link = uriBuilder.Uri.AbsoluteUri;
-            var users = _userService.ResetCode(ResetCode);
+            //var uriBuilder = new UriBuilder
+            //{
+            //    Scheme = Request.Scheme,
+            //    Host = Request.Host.Host,
+            //    Port = Request.Host.Port ?? -1, //bydefault -1
+            //    Path = $"/Auth/ForgotPassword/{ResetCode}"
+            //};
+            //encrypt the userid for link in url.
+            var userId = EncryptionDecryption.Encrypt(getUser.UserId.ToString());
+
+            //link generation with userid.
+            var linkPath = "http://localhost:9334/Auth/SetPassword?link=" + userId;
+            //var link = uriBuilder.Uri.AbsoluteUri;
+            var users = _userService.GetById(user.UserId);
             if (users != null)
             {
                 var subject = "Password Reset Request";
                 var body = "Hi " + getUser.FirstName + ", <br/> You recently requested to reset the password for your account. Click the link below to reset ." +
-                 "<br/> <br/><a href='" + link + "'>" + link + "</a> <br/> <br/>" +
+                 "<br/> <br/><a href='" + linkPath + "'>" + linkPath + "</a> <br/> <br/>" +
                 "If you did not request for reset password please ignore this mail.";
                 SendEmail(user.EmailAddress, body, subject);
 
@@ -303,19 +307,16 @@ namespace SM.Web.Controllers
         /// Reset Password get method.
         /// </summary>
         #region ForgotPassword
-        public IActionResult ForgotPassword(String id)
+        [HttpGet]
+        public IActionResult ForgotPassword(User user)
         {
             try
-            {
-                if (string.IsNullOrWhiteSpace(id))
-                {
-                    return NotFound();
-                }
-                var user = _userService.GetResetPassword(id);
+            { 
+                var users = _userService.GetById(user.UserId);
                 if (user != null)
                 {
                     ForgotPassword modal = new ForgotPassword();
-                    modal.ResetCode = id;
+                    //modal.ResetCode = id;
                     return View(modal);
                 }
                 else
@@ -336,23 +337,29 @@ namespace SM.Web.Controllers
         #region ForgotPassword(POST)
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult ForgotPassword(ForgotPassword model)
+        public ActionResult ForgotPassword(User user, string link)
         {
             try
             {
                 if (ModelState.IsValid)
                 {
-                    var user = _userService.ResetPassword(model);
-                    if (user != null)
+                    int id = (int)HttpContext.Session.GetInt32("links");
+                    user.UserId = id;
+                    var setUserPassword = _userService.SetUserPassword(user);
+                    if (setUserPassword != null)
                     {
                         TempData["successMsg"] = CommonValidations.PasswordUpdateMsg;
+                    }
+                    else
+                    {
+                        TempData["failureMsg"] = CommonValidations.PasswordNotUpdateMsg;
                     }
                 }
                 else
                 {
                     TempData["failureMsg"] = CommonValidations.PasswordNotUpdateMsg;
                 }
-                return View(model);
+                return View();
             }
             catch (Exception)
             {
@@ -374,7 +381,7 @@ namespace SM.Web.Controllers
                 int id = Convert.ToInt32(link);
                 HttpContext.Session.SetInt32("links", id);
                 user.UserId = id;
-                var userDetails = _userService.GetUserPassword(user);
+                var userDetails = _userService.GetById(user.UserId);
                 return View(userDetails);
             }
             catch (Exception)
@@ -389,7 +396,7 @@ namespace SM.Web.Controllers
         /// </summary>
         #region SetPasswordPost
         [HttpPost]
-        public IActionResult SetPassword(User objUser, User user)
+        public IActionResult SetPassword(User user)
         {
             try
             {

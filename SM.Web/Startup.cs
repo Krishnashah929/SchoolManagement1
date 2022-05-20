@@ -1,24 +1,17 @@
-using Alachisoft.NCache.Caching.Distributed;
 using CustomHandlers.CustomHandler;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using SM.Repository.Core.Uow;
-using SM.Services.Users;
-using SM.Web.Data;
+using SM.Entity.EFContext;
+using SM.Repository.Core;
+using SM.Services;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
-using System.Threading.Tasks;
 
 namespace SM.Web
 {
@@ -35,25 +28,33 @@ namespace SM.Web
         public void ConfigureServices(IServiceCollection services)
         {
             //Registration of Base Repository.
-           
- 
+            services.AddDbContext<Entity.EFContext.SMContext>(options => options.UseSqlServer(Configuration.GetConnectionString("SchoolManagementContext")));
+            services.AddMvc(options =>
+            {
+                // This pushes users to login if not authenticated
+                //options.Filters.Add(new AuthorizeFilter());
+
+                options.CacheProfiles.Add("Default0",
+                    new CacheProfile()
+                    {
+                        Duration = 0,
+                        NoStore = true
+                    });
+            });
+
+            services.AddScoped<IDatabaseContext, SMContext>();
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+            services.AddServices();
+            services.AddTransient<IContextFactory, ContextFactory>();
             services.AddTransient<IUnitOfWork, UnitOfWork>();
-            services.AddScoped<IUserServices, UserServices>();
+            //services.AddScoped<IUserServices, UserServices>();
+            //services.AddScoped<IDatabaseContext, SMContext>();
+            //services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+            //services.AddTransient(typeof(IUserServices), typeof(UserServices));
+            ////services.AddTransient<IContextFactory,  >();
+            //services.AddTransient<IUnitOfWork, UnitOfWork>();
 
-            //For authentication purpose.
-            //services.Configure<CookiePolicyOptions>(options =>
-            //{
-            //    // This lambda determines whether user consent for non-essential cookies is needed for a given request.
-            //    options.CheckConsentNeeded = context => true;
-            //    options.MinimumSameSitePolicy = SameSiteMode.None;
-
-            //});
-            //services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(options =>
-            //{
-            //    options.ExpireTimeSpan = TimeSpan.FromMinutes(20);
-            //    options.SlidingExpiration = true;
-            //    options.AccessDeniedPath = "/User/Login";
-            //});
 
             services.AddAuthentication("Cookies")
                  .AddCookie("Cookies", config =>
@@ -71,25 +72,16 @@ namespace SM.Web
                 });
             });
 
-            services.AddScoped<IAuthorizationHandler, PoliciesAuthorizationHandler>();
-            services.AddScoped<IAuthorizationHandler, RolesAuthorizationHandler>();
+            //services.AddScoped<IAuthorizationHandler, PoliciesAuthorizationHandler>();
+            //services.AddScoped<IAuthorizationHandler, RolesAuthorizationHandler>();
 
             services.AddSession();
 
             //For cacheing purpose
             //services.AddResponseCaching();
-            services.AddMvc(options =>
-            {
-                // This pushes users to login if not authenticated
-                //options.Filters.Add(new AuthorizeFilter());
+            
 
-                options.CacheProfiles.Add("Default0",
-                    new CacheProfile()
-                    {
-                        Duration = 0,
-                        NoStore = true
-                    });
-            });
+            
 
             //services.AddNCacheDistributedCache(options =>
             //{
@@ -104,18 +96,18 @@ namespace SM.Web
             //    //    //Location = ResponseCacheLocation.None
             //    //});
             //});
-
+            services.AddControllers();
             services.AddControllersWithViews();
 
             services.AddDistributedMemoryCache();
 
             services.AddRazorPages().AddRazorRuntimeCompilation();
 
-            services.AddDbContext<SchoolManagementContext>(options => options.UseSqlServer(Configuration.GetConnectionString("SchoolManagementContext")));
+            
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, SchoolManagementContext schoolManagementContext)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, Entity.EFContext.SMContext schoolManagementContext)
         {
             var cookiePolicyOptions = new CookiePolicyOptions
             {

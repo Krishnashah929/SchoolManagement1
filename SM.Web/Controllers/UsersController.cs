@@ -1,10 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SM.Entity;
-using SM.Services.Users;
-using SM.Web.Data;
+using SM.Services;
 using System;
-using System.Linq;
 
 /// <summary>
 ///Controller for all User related activites
@@ -17,12 +14,12 @@ namespace SM.Web.Controllers
     [ResponseCache(CacheProfileName = "Default0")]
     public class UsersController : Controller
     {
-        private readonly IUserServices _userServices;
+        private readonly IUsersService _userServices;
 
         /// <summary>
         /// Constructor of an object 
         /// </summary>
-        public UsersController( IUserServices userServices)
+        public UsersController( IUsersService userServices)
         {
             
             _userServices = userServices;

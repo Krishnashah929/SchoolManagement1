@@ -5,11 +5,11 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using SM.Web.Data;
+using SM.Entity.EFContext;
 
 namespace SM.Entity.Migrations
 {
-    [DbContext(typeof(SchoolManagementContext))]
+    [DbContext(typeof(SMContext))]
     [Migration("20220505053748_Role")]
     partial class Role
     {
